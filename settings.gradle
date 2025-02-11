@@ -1,0 +1,18 @@
+pluginManagement {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    buildInfraLibs {
+      from(files('versions.toml'))
+    }
+  }
+}
+
+rootProject.name = 'build-infra'
+
+

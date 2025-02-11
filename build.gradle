@@ -1,0 +1,79 @@
+plugins {
+  id "java-gradle-plugin"
+}
+
+repositories {
+  mavenCentral()
+  gradlePluginPortal()
+}
+
+gradlePlugin {
+  plugins {
+    BuildInfraPlugin {
+      id = 'buildinfra'
+      implementationClass = 'buildinfra.BuildInfraPlugin'
+    }
+
+    BuildOptionsPlugin {
+      id = 'buildinfra.buildoptions'
+      implementationClass = 'buildinfra.buildoptions.BuildOptionsPlugin'
+    }
+
+    GitInfoPlugin {
+      id = 'buildinfra.environment.gitinfo'
+      implementationClass = 'buildinfra.environment.GitInfoPlugin'
+    }
+
+    GradleConsistentWithWrapperPlugin {
+      id = 'buildinfra.environment.gradle-wrapper-used'
+      implementationClass = 'buildinfra.environment.GradleConsistentWithWrapperPlugin'
+    }
+
+    ApplyForbiddenApisPlugin {
+      id = "buildinfra.conventions.forbiddenapis"
+      implementationClass = 'buildinfra.conventions.ApplyForbiddenApisPlugin'
+    }
+
+    ApplyRegisterCommonTasksPlugin {
+      id = "buildinfra.conventions.commontasks"
+      implementationClass = 'buildinfra.conventions.ApplyRegisterCommonTasksPlugin'
+    }
+
+    ApplySpotlessFormattingPlugin {
+      id = "buildinfra.conventions.spotless"
+      implementationClass = 'buildinfra.conventions.ApplySpotlessFormattingPlugin'
+    }
+
+    ApplyVersionsTomlCleanupsPlugin {
+      id = "buildinfra.conventions.cleanup-versions"
+      implementationClass = 'buildinfra.conventions.ApplyVersionsTomlCleanupsPlugin'
+    }
+
+    BuildConventionsPlugin {
+      id = "buildinfra.conventions"
+      implementationClass = 'buildinfra.conventions.BuildConventionsPlugin'
+    }
+
+    DependencyChecksPlugin {
+      id = "buildinfra.versions-lock"
+      implementationClass = 'buildinfra.dependencychecks.DependencyChecksPlugin'
+    }
+  }
+}
+
+dependencies {
+  implementation(buildInfraLibs.spotless.plugin) {
+    exclude module: "groovy-xml"
+  }
+  implementation(buildInfraLibs.forbiddenapis.plugin)
+  implementation(buildInfraLibs.benmanes.versions.plugin)
+  implementation(buildInfraLibs.version.catalog.update.plugin)
+  implementation(buildInfraLibs.jackson.databind)
+  implementation(buildInfraLibs.carrotsearch.procfork)
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(buildInfraLibs.versions.minJava.get())
+  }
+}
