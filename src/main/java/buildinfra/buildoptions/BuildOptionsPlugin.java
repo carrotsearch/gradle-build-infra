@@ -21,7 +21,7 @@ import org.gradle.api.provider.ValueSourceParameters;
  * affect the build. For example, a random {@code tests.seed} or {@code tests.filter}.
  */
 public class BuildOptionsPlugin extends AbstractPlugin {
-  public static final String LOCAL_BUILD_OPTIONS_FILE = ".local-build-options.properties";
+  public static final String LOCAL_BUILD_OPTIONS_FILE = ".local-options.properties";
   public static final String OPTIONS_EXTENSION_NAME = "buildOptions";
 
   @Inject
