@@ -1,0 +1,84 @@
+name: Build and test (reusable workflow)
+
+on:
+  workflow_dispatch:
+    inputs:
+      gradle-options:
+        type: string
+        description: "Any extra options to be passed to gradle"
+        required: false
+        default: ""
+
+      os:
+        type: choice
+        description: "OS to run on."
+        required: true
+        options:
+          - ubuntu-latest
+          - windows-2022
+
+      jdk-version:
+        type: string
+        required: true
+        description: "JDK version to use." 
+        default: 21
+
+      build-timeout:
+        description: "Build timeout, in minutes"
+        type: number
+        default: 30
+
+  workflow_call:
+    inputs:
+      gradle-options:
+        type: string
+        description: "Any extra options to be passed to gradle"
+        required: false
+        default: ""
+
+      os:
+        type: string
+        description: "OS to run on."
+        required: true
+        default: "ubuntu-latest"
+
+      jdk-version:
+        type: string
+        required: true
+        description: "JDK version to use." 
+
+      build-timeout:
+        description: "Build timeout, in minutes"
+        type: number
+        default: 30
+
+jobs:
+  build-and-test:
+    name: test and assemble (JDK ${{ inputs.jdk-version }} on ${{ inputs.os }})
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: ${{ fromJSON(inputs.build-timeout) }}
+
+    env:
+      CI: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: carrotsearch/infra/.github/actions/prepare-gradle-build@master
+        with:
+          jdk-version: ${{ inputs.jdk-version }}
+
+      - name: Assemble only
+        if: ${{ inputs.run-tests }}
+        run: ./gradlew --warning-mode all ${{ inputs.gradle-options }} --max-workers 4 assemble
+
+      - name: Tests and validation
+        if: ${{ inputs.run-tests }}
+        run: ./gradlew --warning-mode all ${{ inputs.gradle-options }} --max-workers 4 check
+
+      - name: Store failed test outputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-test-outputs
+          path: '**/OUTPUT-*.txt'
