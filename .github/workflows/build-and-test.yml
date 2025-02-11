@@ -64,7 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: carrotsearch/infra/.github/actions/prepare-gradle-build@master
+      - uses: ./.github/actions/prepare-gradle-build
         with:
           jdk-version: ${{ inputs.jdk-version }}
 
