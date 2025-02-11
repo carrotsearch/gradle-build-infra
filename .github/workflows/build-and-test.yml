@@ -69,11 +69,9 @@ jobs:
           jdk-version: ${{ inputs.jdk-version }}
 
       - name: Assemble only
-        if: ${{ inputs.run-tests }}
         run: ./gradlew --warning-mode all ${{ inputs.gradle-options }} --max-workers 4 assemble
 
       - name: Tests and validation
-        if: ${{ inputs.run-tests }}
         run: ./gradlew --warning-mode all ${{ inputs.gradle-options }} --max-workers 4 check
 
       - name: Store failed test outputs
