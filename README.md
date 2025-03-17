@@ -47,5 +47,5 @@ tasks.
 * ```tests.maxheap```: Minimum heap size for test JVMs.
 * ```tests.jvms```: The number of forked test JVMs.
 * ```tests.verbose```: Echo all stdout/stderr from tests to gradle console.
-* ```tests.cwd.dir```: Current working directory for test JVMs (build-dir relative). Default: ```test-cwd```
-* ```tests.tmp.dir```: Temporary directory for test JVMs (build-dir relative). Default: ```test-tmp```
+* ```tests.cwd.dir```: Current working directory for test JVMs. Default: ```test-cwd```
+* ```tests.tmp.dir```: Temporary directory for test JVMs. Default: ```test-tmp```

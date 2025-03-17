@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.jetbrains.annotations.NotNull;
 
 public class TestingEnvPlugin extends AbstractPlugin {
   static final String TEST_OUTPUTS_DIR = "test-outputs";
@@ -114,17 +115,19 @@ public class TestingEnvPlugin extends AbstractPlugin {
         buildOptions.addOption(
             "tests.cwd.dir",
             "Current working directory for test JVMs (build-dir relative).",
-            "test-cwd");
+            project.provider(() -> buildDirRelative(project, "test-cwd").toString()));
 
     var tmpDirOption =
         buildOptions.addOption(
-            "tests.tmp.dir", "Temporary directory for test JVMs (build-dir relative).", "test-tmp");
+            "tests.tmp.dir",
+            "Temporary directory for test JVMs (build-dir relative).",
+            project.provider(() -> buildDirRelative(project, "test-tmp").toString()));
 
     testTasks.configureEach(
         task -> {
-          var buildDir = project.getLayout().getBuildDirectory();
+          var projectDir = project.getLayout().getProjectDirectory();
 
-          Provider<Directory> cwdDir = buildDir.dir(cwdDirOption.asStringProvider());
+          Provider<Directory> cwdDir = projectDir.dir(cwdDirOption.asStringProvider());
           task.setWorkingDir(cwdDir);
           task.doFirst(
               t -> {
@@ -135,7 +138,7 @@ public class TestingEnvPlugin extends AbstractPlugin {
                 }
               });
 
-          Provider<Directory> tmpDir = buildDir.dir(tmpDirOption.asStringProvider());
+          Provider<Directory> tmpDir = projectDir.dir(tmpDirOption.asStringProvider());
           task.systemProperty("java.io.tmpdir", tmpDir.get().getAsFile().getAbsolutePath());
           task.doFirst(
               t -> {
@@ -186,6 +189,13 @@ public class TestingEnvPlugin extends AbstractPlugin {
 
           installOutputHandlers(task, filesystemOps, verboseMode);
         });
+  }
+
+  private static @NotNull Path buildDirRelative(Project project, String dir) {
+    return project
+        .getProjectDir()
+        .toPath()
+        .relativize(project.getLayout().getBuildDirectory().dir(dir).get().getAsFile().toPath());
   }
 
   /** Set up error logging and a custom error stream redirector. */
