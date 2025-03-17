@@ -8,7 +8,7 @@ public abstract class BuildOptionsExtension {
 
   /** Returns a lazy provider for the given option. */
   public Provider<String> optionValue(String name) {
-    return getAllOptions().named(name).map(buildOption -> buildOption.getValue().get().value());
+    return getAllOptions().named(name).flatMap(BuildOption::asStringProvider);
   }
 
   public Provider<String> getAt(String name) {

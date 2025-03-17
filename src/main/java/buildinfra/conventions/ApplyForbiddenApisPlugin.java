@@ -42,18 +42,16 @@ public class ApplyForbiddenApisPlugin extends AbstractPlugin {
 
     Directory projectDirectory = project.getLayout().getProjectDirectory();
     var forbiddenApisDirOption =
-        buildOptions
-            .addOption(
-                "forbiddenApisDir",
-                "Directory with per-dependency forbidden-apis rules.",
-                projectDirectory.getAsFile().toPath().relativize(forbiddenApisDir).toString())
-            .getValue();
+        buildOptions.addOption(
+            "forbiddenApisDir",
+            "Directory with per-dependency forbidden-apis rules.",
+            projectDirectory.getAsFile().toPath().relativize(forbiddenApisDir).toString());
 
     RegularFileProperty forbiddenApisDirProperty =
         project
             .getObjects()
             .fileProperty()
-            .convention(projectDirectory.file(forbiddenApisDirOption.get().value()));
+            .convention(projectDirectory.file(forbiddenApisDirOption.asStringProvider()));
 
     project
         .getPlugins()

@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -34,20 +33,18 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   private final Map<TestKey, OutputHandler> outputHandlers = new ConcurrentHashMap<>();
   private final Path spillDir;
   private final Path outputsDir;
-
-  private boolean verboseMode;
-  private Provider<Boolean> verboseModeProvider;
+  private final boolean verboseMode;
 
   public ErrorReportingTestListener(
       Logger taskLogger,
       TestLogging testLogging,
       Path spillDir,
       Path outputsDir,
-      Provider<Boolean> verboseMode) {
+      boolean verboseMode) {
     this.formatter = new FullExceptionFormatter(testLogging);
     this.spillDir = spillDir;
     this.outputsDir = outputsDir;
-    this.verboseModeProvider = verboseMode;
+    this.verboseMode = verboseMode;
     this.taskLogger = taskLogger;
   }
 
@@ -57,9 +54,7 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   }
 
   @Override
-  public void beforeSuite(TestDescriptor suite) {
-    verboseMode = verboseModeProvider.get();
-  }
+  public void beforeSuite(TestDescriptor suite) {}
 
   @Override
   public void beforeTest(TestDescriptor testDescriptor) {
@@ -148,7 +143,7 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   public void afterTest(TestDescriptor testDescriptor, TestResult result) {
     // Include test failure exception stacktrace(s) in test output log.
     if (result.getResultType() == TestResult.ResultType.FAILURE) {
-      if (result.getExceptions().size() > 0) {
+      if (!result.getExceptions().isEmpty()) {
         String message = formatter.format(testDescriptor, result.getExceptions());
         handlerFor(testDescriptor).write(message);
       }
