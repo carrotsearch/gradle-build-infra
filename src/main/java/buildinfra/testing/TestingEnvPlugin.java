@@ -3,6 +3,9 @@ package buildinfra.testing;
 import buildinfra.AbstractPlugin;
 import buildinfra.buildoptions.BuildOptionsExtension;
 import buildinfra.buildoptions.BuildOptionsPlugin;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -10,10 +13,12 @@ import javax.inject.Inject;
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
@@ -105,8 +110,42 @@ public class TestingEnvPlugin extends AbstractPlugin {
         buildOptions.addOption(
             "tests.verbose", "Echo all stdout/stderr from tests to gradle console.", "false");
 
+    var cwdDirOption =
+        buildOptions.addOption(
+            "tests.cwd.dir",
+            "Current working directory for test JVMs (build-dir relative).",
+            "test-cwd");
+
+    var tmpDirOption =
+        buildOptions.addOption(
+            "tests.tmp.dir", "Temporary directory for test JVMs (build-dir relative).", "test-tmp");
+
     testTasks.configureEach(
         task -> {
+          var buildDir = project.getLayout().getBuildDirectory();
+
+          Provider<Directory> cwdDir = buildDir.dir(cwdDirOption.asStringProvider());
+          task.setWorkingDir(cwdDir);
+          task.doFirst(
+              t -> {
+                try {
+                  Files.createDirectories(cwdDir.get().getAsFile().toPath());
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+              });
+
+          Provider<Directory> tmpDir = buildDir.dir(tmpDirOption.asStringProvider());
+          task.systemProperty("java.io.tmpdir", tmpDir.get().getAsFile().getAbsolutePath());
+          task.doFirst(
+              t -> {
+                try {
+                  Files.createDirectories(tmpDir.get().getAsFile().toPath());
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+              });
+
           if (rerunOption.getValue().isPresent() && rerunOption.asBooleanProvider().get()) {
             task.getOutputs()
                 .upToDateWhen(
