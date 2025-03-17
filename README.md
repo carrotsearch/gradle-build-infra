@@ -31,3 +31,11 @@ the output for both):
 ./gradlew buildOptions
 ./gradlew buildOptions -Pfoo=xyz -Dbar=abc
 ```
+
+Plugin: ```buildinfra.testing-env```
+--
+
+Sets up certain defaults for Java tests. 
+
+This plugin adds the following build options to Java projects:
+* ```tests.htmlReports```: Configures HTML report generation from tests. Default: ```false``` 

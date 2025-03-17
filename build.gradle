@@ -58,6 +58,11 @@ gradlePlugin {
       id = "buildinfra.versions-lock"
       implementationClass = 'buildinfra.dependencychecks.DependencyChecksPlugin'
     }
+
+    TestingEnvPlugin {
+      id = "buildinfra.testing-env"
+      implementationClass = 'buildinfra.testing.TestingEnvPlugin'
+    }
   }
 }
 
