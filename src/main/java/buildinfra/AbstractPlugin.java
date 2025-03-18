@@ -18,10 +18,17 @@ public abstract class AbstractPlugin implements Plugin<Project> {
   }
 
   protected final void pluginAppliedToRootProject(Project project) {
-    if (project != project.getRootProject()) {
+    if (!isRootProject(project)) {
       throw reportError(
-          "environment-apply-root-project", "Apply this plugin to the rootProject only.");
+          "environment-apply-root-project",
+          "Theis plugin is applicable to the rootProject only (currently applied to "
+              + project.getPath()
+              + ")");
     }
+  }
+
+  protected static final boolean isRootProject(Project project) {
+    return project == project.getRootProject();
   }
 
   protected RuntimeException reportError(String id, String label) {

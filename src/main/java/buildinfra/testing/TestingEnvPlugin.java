@@ -3,49 +3,240 @@ package buildinfra.testing;
 import buildinfra.AbstractPlugin;
 import buildinfra.buildoptions.BuildOptionsExtension;
 import buildinfra.buildoptions.BuildOptionsPlugin;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.flow.*;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.build.event.BuildEventsListenerRegistry;
+import org.gradle.internal.configuration.problems.PropertyTrace;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.events.OperationCompletionListener;
 import org.jetbrains.annotations.NotNull;
 
-public class TestingEnvPlugin extends AbstractPlugin {
-  static final String TEST_OUTPUTS_DIR = "test-outputs";
+public abstract class TestingEnvPlugin extends AbstractPlugin {
+  private static final String INTERNAL_VERBOSE_MODE_PROP = "internal:verboseMode";
+  private static final String TEST_OUTPUTS_DIR = "test-outputs";
   private final FileSystemOperations filesystemOps;
 
   private AtomicBoolean warnOnce = new AtomicBoolean(true);
 
   @Inject
-  public TestingEnvPlugin(Problems problems, FileSystemOperations filesystemOps) {
+  protected abstract FlowScope getFlowScope();
+
+  @Inject
+  protected abstract FlowProviders getFlowProviders();
+
+  @Inject
+  public TestingEnvPlugin(
+      Problems problems,
+      FileSystemOperations filesystemOps,
+      BuildEventsListenerRegistry eventsListenerRegistry) {
     super(problems);
     this.filesystemOps = filesystemOps;
+  }
+
+  public abstract static class TaskEventsParams implements BuildServiceParameters {
+    abstract Property<Boolean> getHasTestParams();
+  }
+
+  public abstract static class TaskEventsService
+      implements BuildService<TaskEventsParams>, Closeable, TestListener {
+
+    private AtomicInteger executedTasks = new AtomicInteger();
+
+    @Override
+    public void close() throws IOException {}
+
+    @Override
+    public void beforeSuite(TestDescriptor suite) {}
+
+    @Override
+    public void afterSuite(TestDescriptor suite, TestResult result) {}
+
+    @Override
+    public void beforeTest(TestDescriptor testDescriptor) {}
+
+    @Override
+    public void afterTest(TestDescriptor testDescriptor, TestResult result) {}
+
+    public void testTaskRun(Task taskRef) {
+      executedTasks.incrementAndGet();
+    }
+
+    public void finish(BuildWorkResult buildWorkResult) {
+      System.out.println(
+          "Done: " + buildWorkResult.getFailure().isPresent() + " " + executedTasks.get());
+    }
+  }
+
+  public abstract static class CheckAfterBuildParams implements FlowParameters {
+    @ServiceReference()
+    public abstract Property<TaskEventsService> getTaskEventsService();
+
+    @Input
+    public abstract Property<BuildWorkResult> getBuildWorkResult();
+  }
+
+  public static class CheckAfterBuild implements FlowAction<CheckAfterBuildParams> {
+    @Override
+    public void execute(CheckAfterBuildParams parameters) throws Exception {
+      parameters.getTaskEventsService().get().finish(parameters.getBuildWorkResult().get());
+    }
+  }
+
+  public abstract static class AbstractBuildEventsHook implements OperationCompletionListener {
+    @Inject
+    public abstract FlowScope getFlowScope();
+
+    @Inject
+    public abstract FlowProviders getFlowProviders();
+
+    @Inject
+    public abstract BuildEventsListenerRegistry getEventListenerRegistry();
+
+    @Inject
+    public abstract ProviderFactory getProviderFactory();
+
+    @Inject
+    public abstract TaskExecutionGraph getGraph();
+
+    private final List<FinishEvent> buildEvents = new ArrayList<>();
+
+    public abstract static class InternalFlowParams implements FlowParameters {
+      @Input
+      public abstract Property<BuildWorkResult> getBuildWorkResult();
+    }
+
+    public abstract static class InternalFlowAction implements FlowAction<InternalFlowParams> {
+      @Inject
+      public abstract Property<TaskExecutionGraph> getTaskExecutionGraph();
+
+      @Override
+      public void execute(InternalFlowParams parameters) throws Exception {
+        System.out.println("Flow done: " + parameters.getBuildWorkResult().get());
+        getTaskExecutionGraph()
+            .get()
+            .getAllTasks()
+            .forEach(
+                task -> {
+                  System.out.println("T: " + task.getPath() + " => " + task.getState());
+                });
+      }
+    }
+
+    public void setup() {
+      getEventListenerRegistry().onTaskCompletion(getProviderFactory().provider(() -> this));
+      getGraph()
+          .whenReady(
+              (g) -> {
+                System.out.println("Graph is ready.");
+              });
+      getFlowScope()
+          .always(
+              InternalFlowAction.class,
+              spec -> {
+                var params = spec.getParameters();
+                params.getBuildWorkResult().set(getFlowProviders().getBuildWorkResult());
+              });
+    }
+
+    public void onFinish(FinishEvent event) {
+      synchronized (buildEvents) {
+        buildEvents.add(event);
+      }
+      System.out.println("L: " + event);
+    }
   }
 
   @Override
   public void apply(Project project) {
     Spec<? super Test> testTaskFilter = t -> true;
 
-    if (project.getRootProject() == project
-        && project.getGradle().getStartParameter().getMaxWorkerCount() > 1) {
+    System.out.println("Configuring: " + project.getPath());
+    if (isRootProject(project)) {
+      var foo = project.getObjects().newInstance(AbstractBuildEventsHook.class);
+      foo.setup();
+    }
+
+    getFlowScope()
+        .always(
+            CheckAfterBuild.class,
+            spec -> {
+              spec.getParameters()
+                  .getBuildWorkResult()
+                  .set(getFlowProviders().getBuildWorkResult());
+            });
+
+    // set up the global 'fail on no tests' hook.
+    if (true) {
+      boolean hasTestFiltersArgs =
+          project.getGradle().getStartParameter().getTaskNames().stream()
+              .anyMatch(arg -> arg.equals("--tests"));
+
+      Provider<TaskEventsService> taskEvents =
+          project
+              .getGradle()
+              .getSharedServices()
+              .registerIfAbsent(
+                  "test-task-events",
+                  TaskEventsService.class,
+                  spec -> {
+                    spec.getParameters().getHasTestParams().set(hasTestFiltersArgs);
+                  });
+
+      project
+          .getTasks()
+          .configureEach(
+              t -> {
+                if (t instanceof Test te && testTaskFilter.isSatisfiedBy(te)) {
+                  te.addTestListener(taskEvents.get());
+                  te.usesService(taskEvents);
+
+                  te.doFirst(
+                      (taskRef) -> {
+                        taskEvents.get().testTaskRun(taskRef);
+                      });
+                }
+              });
+    }
+
+    // warn if multiple workers are running in verbose mode.
+    if (isRootProject(project) && project.getGradle().getStartParameter().getMaxWorkerCount() > 1) {
       project
           .getGradle()
           .getTaskGraph()
@@ -55,6 +246,11 @@ public class TestingEnvPlugin extends AbstractPlugin {
                     graph.getAllTasks().stream()
                         .filter(t -> t instanceof Test)
                         .filter(t -> testTaskFilter.isSatisfiedBy((Test) t))
+                        .filter(
+                            t ->
+                                t.getExtensions()
+                                    .getExtraProperties()
+                                    .has(INTERNAL_VERBOSE_MODE_PROP))
                         .count();
                 if (testTasksCount > 1) {
                   if (warnOnce.getAndSet(false)) {
@@ -178,6 +374,17 @@ public class TestingEnvPlugin extends AbstractPlugin {
           }
 
           boolean verboseMode = verboseOption.asBooleanProvider().get();
+
+          // mark the task as running in verbose mode.
+          if (verboseMode) {
+            var ext = task.getExtensions().getExtraProperties();
+            if (ext.has(INTERNAL_VERBOSE_MODE_PROP)) {
+              throw new RuntimeException("wtf?");
+            }
+            task.getExtensions().getExtraProperties().set(INTERNAL_VERBOSE_MODE_PROP, "true");
+          }
+
+          // set the maximum number of parallel forks.
           if (verboseMode || jvmsOption.getValue().isPresent()) {
             int forks = jvmsOption.asIntProvider().getOrElse(1);
             if (verboseMode && forks > 1) {
@@ -187,6 +394,7 @@ public class TestingEnvPlugin extends AbstractPlugin {
             task.setMaxParallelForks(forks);
           }
 
+          // install stdout/stderr handlers.
           installOutputHandlers(task, filesystemOps, verboseMode);
         });
   }
