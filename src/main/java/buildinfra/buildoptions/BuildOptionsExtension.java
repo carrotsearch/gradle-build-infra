@@ -11,6 +11,14 @@ public abstract class BuildOptionsExtension {
     return getAllOptions().named(name).flatMap(BuildOption::asStringProvider);
   }
 
+  public BuildOption getOption(String name) {
+    return getAllOptions().named(name).get();
+  }
+
+  public boolean hasOption(String name) {
+    return getAllOptions().findByName(name) != null;
+  }
+
   public Provider<String> getAt(String name) {
     return optionValue(name);
   }
