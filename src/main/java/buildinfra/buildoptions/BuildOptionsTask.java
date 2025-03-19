@@ -78,7 +78,9 @@ public abstract class BuildOptionsTask extends DefaultTask {
                         case ENVIRONMENT_VARIABLE -> "environment variable";
                         case EXPLICIT_VALUE -> "explicit value";
                         case COMPUTED_VALUE -> throw new RuntimeException("Unreachable");
-                        case LOCAL_OPTIONS_FILE -> ".buildOptions.local file";
+                        case BUILD_OPTIONS_FILE -> BuildOptionsPlugin.BUILD_OPTIONS_FILE + " file";
+                        case LOCAL_BUILD_OPTIONS_FILE ->
+                            BuildOptionsPlugin.LOCAL_BUILD_OPTIONS_FILE + " file";
                       };
                 }
               }

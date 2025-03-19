@@ -8,19 +8,20 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Random;
 import javax.inject.Inject;
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
@@ -29,26 +30,92 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.jetbrains.annotations.NotNull;
 
-public class TestingEnvPlugin extends AbstractPlugin {
+public abstract class TestingEnvPlugin extends AbstractPlugin {
   private static final String TEST_OUTPUTS_DIR = "test-outputs";
-  private final FileSystemOperations filesystemOps;
-  private final BuildFeatures buildFeatures;
+  private static final String PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME = "randomizationInfo";
 
-  private AtomicBoolean warnOnce = new AtomicBoolean(true);
+  abstract static class RootTestingProjectExtension {
+    public static final String NAME = "buildInfra-testing-root";
+
+    public RootTestingProjectExtension() {}
+
+    abstract Property<String> getRootSeed();
+  }
+
+  abstract static class TestingProjectExtension {
+    public static final String NAME = "buildInfra-testing";
+
+    public TestingProjectExtension() {}
+
+    TaskCollection<Test> getTestTasks(Project project) {
+      return project.getTasks().withType(Test.class);
+    }
+  }
 
   @Inject
-  public TestingEnvPlugin(
-      Problems problems, FileSystemOperations filesystemOps, BuildFeatures buildFeatures) {
+  protected abstract FileSystemOperations getFilesystemOps();
+
+  @Inject
+  protected abstract BuildFeatures getBuildFeatures();
+
+  @Inject
+  public TestingEnvPlugin(Problems problems) {
     super(problems);
-    this.filesystemOps = filesystemOps;
-    this.buildFeatures = buildFeatures;
   }
 
   @Override
   public void apply(Project project) {
-    Spec<? super Test> testTaskFilter = t -> true;
+    if (isRootProject(project)) {
+      project.getPlugins().apply(BuildOptionsPlugin.class);
+      var ext =
+          project
+              .getExtensions()
+              .create(RootTestingProjectExtension.NAME, RootTestingProjectExtension.class);
+      installVerboseCheckHook(project);
+      installRootSeed(project, ext);
+    }
 
-    if (isRootProject(project) && project.getGradle().getStartParameter().getMaxWorkerCount() > 1) {
+    project.getExtensions().create(TestingProjectExtension.NAME, TestingProjectExtension.class);
+
+    project
+        .getPlugins()
+        .withType(
+            JavaBasePlugin.class,
+            plugin -> {
+              applyTestingEnv(project);
+            });
+  }
+
+  private static void installRootSeed(Project project, RootTestingProjectExtension ext) {
+    var rootSeedOption =
+        project
+            .getExtensions()
+            .getByType(BuildOptionsExtension.class)
+            .addOption(
+                "tests.seed",
+                "Root randomization seed for randomizedtesting.",
+                project.provider(() -> String.format("%08X", new Random().nextLong())));
+
+    Property<String> rootSeed = ext.getRootSeed();
+    rootSeed.set(rootSeedOption.asStringProvider());
+    rootSeed.finalizeValueOnRead();
+
+    project
+        .getTasks()
+        .register(
+            PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME,
+            Task.class,
+            t -> {
+              t.doFirst(
+                  task -> {
+                    task.getLogger()
+                        .lifecycle("Root randomization seed (tests.seed): " + rootSeed.get());
+                  });
+            });
+  }
+
+  private static void installVerboseCheckHook(Project project) {
+    if (project.getGradle().getStartParameter().getMaxWorkerCount() > 1) {
       project
           .getGradle()
           .getTaskGraph()
@@ -72,10 +139,16 @@ public class TestingEnvPlugin extends AbstractPlugin {
                             });
                 if (verboseMode) {
                   var testTasksCount =
-                      graph.getAllTasks().stream()
-                          .filter(t -> t instanceof Test)
-                          .filter(t -> testTaskFilter.isSatisfiedBy((Test) t))
-                          .count();
+                      project.getAllprojects().stream()
+                          .mapToLong(
+                              p -> {
+                                var ext =
+                                    p.getExtensions().findByType(TestingProjectExtension.class);
+                                if (ext == null) return 0;
+                                return ext.getTestTasks(p).size();
+                              })
+                          .sum();
+
                   if (testTasksCount > 1) {
                     throw new GradleException(
                         "Run only one test task in verbose mode or pass --max-workers=1 option "
@@ -84,26 +157,31 @@ public class TestingEnvPlugin extends AbstractPlugin {
                 }
               });
     }
-
-    project
-        .getPlugins()
-        .withType(
-            JavaBasePlugin.class,
-            plugin -> {
-              applyTestingEnv(project, testTaskFilter);
-            });
   }
 
-  private void applyTestingEnv(Project project, Spec<? super Test> testTaskFilter) {
+  private void applyTestingEnv(Project project) {
     project.getPlugins().apply(BuildOptionsPlugin.class);
 
     BuildOptionsExtension buildOptions =
         project.getExtensions().getByType(BuildOptionsExtension.class);
-    TaskCollection<Test> testTasks =
-        project.getTasks().withType(Test.class).matching(testTaskFilter);
-
+    var testTasks =
+        project.getExtensions().getByType(TestingProjectExtension.class).getTestTasks(project);
     configureHtmlReportsOption(buildOptions, testTasks);
     configureTestTaskOptions(project, buildOptions, testTasks);
+    configureRandomizedTestingOptions(
+        project, testTasks, ":" + PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME);
+  }
+
+  /** Configure test options specific to the randomizedtesting package. */
+  private void configureRandomizedTestingOptions(
+      Project project, TaskCollection<Test> testTasks, String printSeedTaskName) {
+    var ext = project.getRootProject().getExtensions().getByType(RootTestingProjectExtension.class);
+    var rootSeed = ext.getRootSeed();
+    testTasks.configureEach(
+        task -> {
+          task.systemProperty("tests.seed", rootSeed.get());
+          task.dependsOn(printSeedTaskName);
+        });
   }
 
   /** Configure tunable defaults for all Test tasks. */
@@ -209,7 +287,7 @@ public class TestingEnvPlugin extends AbstractPlugin {
           }
 
           // install stdout/stderr handlers.
-          installOutputHandlers(task, filesystemOps, verboseMode);
+          installOutputHandlers(task, getFilesystemOps(), verboseMode);
         });
   }
 

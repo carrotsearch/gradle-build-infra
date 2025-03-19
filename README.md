@@ -10,7 +10,8 @@ values, with values sourced dynamically from
 * system property (-Dfoo=value),
 * gradle property (-Pfoo=value),
 * environment variable (foo=value ./gradlew ...)
-* local, typically unversioned, ```.local-options.properties``` property file.
+* versioned ```.options.properties"``` property file.
+* local, typically unversioned, ```.options.local.properties``` property file.
 
 Typical usage in a build file:
 ```groovy

@@ -1,0 +1,21 @@
+- build options should be typed?
+
+- global summary of all tests at the end of execution.
+
+- reproduce-with messages in testing plugin
+
+- add randomizedrunner tests.* as options?
+
+- build option groups (for more structured output display)
+
+- maybe the top-level extension buildInfra should be itself extensible and provide
+setup for other parts of the env configuration? For example, with the testing plugin:
+
+buildInfra {
+  testing {
+    includeTestTasks = [".*:test"]
+  }
+}
+
+If a sub-plugin is not enabled, it'd error out because these extensions would be added
+dynamically.
