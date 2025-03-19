@@ -1,5 +1,3 @@
-- add randomizedrunner tests.* as options?
-
 - global summary of all tests at the end of execution.
 
 - reproduce-with messages in testing plugin
