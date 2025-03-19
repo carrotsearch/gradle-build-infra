@@ -1,21 +1,12 @@
-- reproducible builds convention
-
-  tasks.withType(AbstractArchiveTask).configureEach {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-    duplicatesStrategy = DuplicatesStrategy.FAIL
-  }
-
-
-- build options should be typed?
+- add randomizedrunner tests.* as options?
 
 - global summary of all tests at the end of execution.
 
 - reproduce-with messages in testing plugin
 
-- add randomizedrunner tests.* as options?
-
 - build option groups (for more structured output display)
+
+- build options should be typed?
 
 - maybe the top-level extension buildInfra should be itself extensible and provide
 setup for other parts of the env configuration? For example, with the testing plugin:
@@ -28,3 +19,6 @@ buildInfra {
 
 If a sub-plugin is not enabled, it'd error out because these extensions would be added
 dynamically.
+
+- add tests, perhaps as a separate project so that the build-infra can be used independently
+as a submodule?

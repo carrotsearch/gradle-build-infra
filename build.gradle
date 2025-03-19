@@ -49,9 +49,9 @@ gradlePlugin {
       implementationClass = 'buildinfra.conventions.ApplyVersionsTomlCleanupsPlugin'
     }
 
-    BuildConventionsPlugin {
-      id = "buildinfra.conventions"
-      implementationClass = 'buildinfra.conventions.BuildConventionsPlugin'
+    ApplyReproducibleBuildsPlugin {
+      id = "buildinfra.conventions.reproducible-builds"
+      implementationClass = 'buildinfra.conventions.ApplyReproducibleBuildsPlugin'
     }
 
     DependencyChecksPlugin {

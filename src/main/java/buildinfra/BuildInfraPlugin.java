@@ -2,7 +2,6 @@ package buildinfra;
 
 import buildinfra.buildoptions.BuildOptionsPlugin;
 import buildinfra.conventions.ApplyRegisterCommonTasksPlugin;
-import buildinfra.conventions.BuildConventionsPlugin;
 import buildinfra.environment.GradleConsistentWithWrapperPlugin;
 import java.util.List;
 import javax.inject.Inject;
@@ -41,7 +40,6 @@ public class BuildInfraPlugin extends AbstractPlugin {
     project.allprojects(
         subproject -> {
           subproject.getPlugins().apply(BuildOptionsPlugin.class);
-          subproject.getPlugins().apply(BuildConventionsPlugin.class);
           subproject.getPlugins().apply(ApplyRegisterCommonTasksPlugin.class);
         });
   }

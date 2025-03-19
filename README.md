@@ -50,3 +50,14 @@ tasks.
 * ```tests.verbose```: Echo all stdout/stderr from tests to gradle console.
 * ```tests.cwd.dir```: Current working directory for test JVMs. Default: ```test-cwd```
 * ```tests.tmp.dir```: Temporary directory for test JVMs. Default: ```test-tmp```
+
+The following properties can be used to configure the randomizedtesting
+unit test randomization framework.
+
+* ```tests.seed```: Root seed for the randomizedtesting framework. Default: randomly computed.
+
+Plugin: ```buildinfra.conventions.reproducible-builds```
+--
+
+Sets up sane defaults for all archive tasks. These include predictable file order,
+no timestamps and constant (unix) file permissions.
