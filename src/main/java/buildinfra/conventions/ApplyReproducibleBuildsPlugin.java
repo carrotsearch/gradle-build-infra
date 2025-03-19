@@ -23,12 +23,14 @@ public class ApplyReproducibleBuildsPlugin extends AbstractPlugin {
               task.setPreserveFileTimestamps(false);
               task.setReproducibleFileOrder(true);
               task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
-              task.dirPermissions(perm -> {
-                  perm.unix(0755);
-              });
-              task.filePermissions(perm -> {
-                  perm.unix(0644);
-              });
+              task.dirPermissions(
+                  perm -> {
+                    perm.unix(0755);
+                  });
+              task.filePermissions(
+                  perm -> {
+                    perm.unix(0644);
+                  });
             });
   }
 }

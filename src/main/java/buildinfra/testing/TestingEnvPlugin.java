@@ -8,6 +8,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import javax.inject.Inject;
 import org.apache.tools.ant.types.Commandline;
@@ -169,18 +170,51 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
     configureHtmlReportsOption(buildOptions, testTasks);
     configureTestTaskOptions(project, buildOptions, testTasks);
     configureRandomizedTestingOptions(
-        project, testTasks, ":" + PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME);
+        project, buildOptions, testTasks, ":" + PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME);
   }
 
   /** Configure test options specific to the randomizedtesting package. */
   private void configureRandomizedTestingOptions(
-      Project project, TaskCollection<Test> testTasks, String printSeedTaskName) {
+      Project project,
+      BuildOptionsExtension buildOptions,
+      TaskCollection<Test> testTasks,
+      String printSeedTaskName) {
+
+    var stackfilteringOption =
+        buildOptions.addOption("tests.stackfiltering", "Enable or disable stack filtering.");
+    var itersOption =
+        buildOptions.addOption(
+            "tests.iters", "Repeats randomized tests the provided number of times.");
+    var filterOption =
+        buildOptions.addOption(
+            "tests.filter", "Apply test group filtering using Boolean expressions.");
+    var timeoutOption = buildOptions.addOption("tests.timeout", "Test timeout (in millis).");
+    var timeoutSuiteOption =
+        buildOptions.addOption("tests.timeoutSuite", "Test suite timeout (in millis).");
+    var assertsOption =
+        buildOptions.addOption(
+            "tests.asserts",
+            "The desired assertions status for RequireAssertionsRule (true/false).");
+
     var ext = project.getRootProject().getExtensions().getByType(RootTestingProjectExtension.class);
     var rootSeed = ext.getRootSeed();
     testTasks.configureEach(
         task -> {
-          task.systemProperty("tests.seed", rootSeed.get());
           task.dependsOn(printSeedTaskName);
+          task.systemProperty("tests.seed", rootSeed.get());
+
+          for (var opt :
+              List.of(
+                  stackfilteringOption,
+                  assertsOption,
+                  itersOption,
+                  filterOption,
+                  timeoutOption,
+                  timeoutSuiteOption)) {
+            if (opt.getValue().isPresent()) {
+              task.systemProperty(opt.getName(), opt.asStringProvider().get());
+            }
+          }
         });
   }
 
