@@ -4,6 +4,7 @@ import buildinfra.AbstractPlugin;
 import buildinfra.buildoptions.BuildOptionsExtension;
 import buildinfra.buildoptions.BuildOptionsPlugin;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +26,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
@@ -34,6 +38,34 @@ import org.jetbrains.annotations.NotNull;
 public abstract class TestingEnvPlugin extends AbstractPlugin {
   private static final String TEST_OUTPUTS_DIR = "test-outputs";
   private static final String PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME = "randomizationInfo";
+  private static final String ALL_TESTS_SUMMARY_TASK_NAME = "allTestsSummary";
+
+  class TestSummary implements Serializable {
+    long testTasksExecuted;
+    long tests;
+    long failures;
+    long ignored;
+
+    public synchronized void incrementTasks() {
+      testTasksExecuted++;
+    }
+
+    public synchronized void suiteResult(TestDescriptor desc, TestResult result) {
+      if (desc.isComposite()) return;
+      account(result);
+    }
+
+    public synchronized void testResult(TestDescriptor desc, TestResult result) {
+      if (desc.isComposite()) return;
+      account(result);
+    }
+
+    private void account(TestResult result) {
+      tests += result.getTestCount();
+      failures += result.getFailedTestCount();
+      ignored += result.getSkippedTestCount();
+    }
+  }
 
   abstract static class RootTestingProjectExtension {
     public static final String NAME = "buildInfra-testing-root";
@@ -41,6 +73,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
     public RootTestingProjectExtension() {}
 
     abstract Property<String> getRootSeed();
+
+    abstract Property<TestSummary> getTestSummary();
   }
 
   abstract static class TestingProjectExtension {
@@ -72,12 +106,13 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           project
               .getExtensions()
               .create(RootTestingProjectExtension.NAME, RootTestingProjectExtension.class);
+
       installVerboseCheckHook(project);
       installRootSeed(project, ext);
+      installGlobalTestsSummary(project, ext);
     }
 
     project.getExtensions().create(TestingProjectExtension.NAME, TestingProjectExtension.class);
-
     project
         .getPlugins()
         .withType(
@@ -85,6 +120,45 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
             plugin -> {
               applyTestingEnv(project);
             });
+  }
+
+  private void installGlobalTestsSummary(Project project, RootTestingProjectExtension ext) {
+    TestSummary testSummary = new TestSummary();
+    ext.getTestSummary().set(testSummary);
+    var configurationCache = getBuildFeatures().getConfigurationCache();
+    if (configurationCache.getRequested().getOrElse(false)) {
+      project.getLogger().warn("Global test summary does not work with the configuration cache.");
+    } else {
+      project
+          .getTasks()
+          .register(
+              ALL_TESTS_SUMMARY_TASK_NAME,
+              Task.class,
+              t -> {
+                t.doFirst(
+                    task -> {
+                      if (testSummary.testTasksExecuted > 0) {
+                        StringBuilder msg = new StringBuilder();
+                        msg.append(
+                            pluralize("test task", testSummary.testTasksExecuted)
+                                + " executed"
+                                + ", "
+                                + pluralize("test", testSummary.tests));
+                        if (testSummary.failures > 0) {
+                          msg.append(", " + pluralize("failure", testSummary.failures));
+                        }
+                        if (testSummary.ignored > 0) {
+                          msg.append(", " + testSummary.ignored + " ignored");
+                        }
+                        project.getLogger().lifecycle(msg.toString());
+                      }
+                    });
+              });
+    }
+  }
+
+  private static String pluralize(String word, long count) {
+    return "" + count + " " + (count == 1 ? word : word + "s");
   }
 
   private static void installRootSeed(Project project, RootTestingProjectExtension ext) {
@@ -171,6 +245,48 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
     configureTestTaskOptions(project, buildOptions, testTasks);
     configureRandomizedTestingOptions(
         project, buildOptions, testTasks, ":" + PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME);
+    configureGlobalTestSummary(project, testTasks);
+  }
+
+  private void configureGlobalTestSummary(Project project, TaskCollection<Test> testTasks) {
+    var configurationCache = getBuildFeatures().getConfigurationCache();
+    if (configurationCache.getRequested().getOrElse(false)) {
+      // Just ignore, won't work.
+      return;
+    }
+
+    var testSummary =
+        project
+            .getRootProject()
+            .getExtensions()
+            .findByType(RootTestingProjectExtension.class)
+            .getTestSummary()
+            .get();
+
+    testTasks.configureEach(
+        task -> {
+          task.finalizedBy(":" + ALL_TESTS_SUMMARY_TASK_NAME);
+
+          testSummary.incrementTasks();
+          task.addTestListener(
+              new TestListener() {
+                @Override
+                public void beforeSuite(TestDescriptor suite) {}
+
+                @Override
+                public void afterSuite(TestDescriptor suite, TestResult result) {
+                  testSummary.suiteResult(suite, result);
+                }
+
+                @Override
+                public void beforeTest(TestDescriptor testDescriptor) {}
+
+                @Override
+                public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                  testSummary.testResult(testDescriptor, result);
+                }
+              });
+        });
   }
 
   /** Configure test options specific to the randomizedtesting package. */
