@@ -41,20 +41,26 @@ Sets up certain defaults for Java tests.
 This plugin adds the following build options to Java projects and applies them to all ```Test```
 tasks.
 
-* ```tests.htmlReports```: Configures HTML report generation from tests. Default: ```false``` 
-* ```tests.rerun```: Force re-running tests. Default: ```false```
-* ```tests.jvmargs```: Additional arguments to pass directly to the forked test runner JVMs.
-* ```tests.minheap```: Minimum heap size for test JVMs.
-* ```tests.maxheap```: Minimum heap size for test JVMs.
-* ```tests.jvms```: The number of forked test JVMs.
-* ```tests.verbose```: Echo all stdout/stderr from tests to gradle console.
 * ```tests.cwd.dir```: Current working directory for test JVMs. Default: ```test-cwd```
+* ```tests.htmlReports```: Configures HTML report generation from tests. Default: ```false``` 
+* ```tests.jvmargs```: Additional arguments to pass directly to the forked test runner JVMs.
+* ```tests.jvms```: The number of forked test JVMs.
+* ```tests.maxheap```: Minimum heap size for test JVMs.
+* ```tests.minheap```: Minimum heap size for test JVMs.
+* ```tests.rerun```: Force re-running tests. Default: ```false```
 * ```tests.tmp.dir```: Temporary directory for test JVMs. Default: ```test-tmp```
+* ```tests.verbose```: Echo all stdout/stderr from tests to gradle console.
 
 The following properties can be used to configure the randomizedtesting
 unit test randomization framework.
 
+* ```tests.asserts```: The desired assertions status for RequireAssertionsRule (true/false).
+* ```tests.filter```: Apply test group filtering using Boolean expressions.
+* ```tests.iters```: Repeats randomized tests the provided number of times.
 * ```tests.seed```: Root seed for the randomizedtesting framework. Default: randomly computed.
+* ```tests.stackfiltering```: Enable or disable stack filtering.
+* ```tests.timeoutSuite```: Test suite timeout (in millis).
+* ```tests.timeout```: Test timeout (in millis).
 
 Plugin: ```buildinfra.conventions.reproducible-builds```
 --
