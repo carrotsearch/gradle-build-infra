@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
@@ -21,6 +23,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 /**
  * An error reporting listener that queues test output streams and displays them on failure.
@@ -34,9 +37,13 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   private final Path spillDir;
   private final Path outputsDir;
   private final boolean verboseMode;
+  private final StyledTextOutput styledOut;
+  private final ReproduceLineExtension reproduceLineExtension;
 
   public ErrorReportingTestListener(
       Logger taskLogger,
+      StyledTextOutput styledOut,
+      ReproduceLineExtension reproduceLineExtension,
       TestLogging testLogging,
       Path spillDir,
       Path outputsDir,
@@ -46,6 +53,8 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
     this.outputsDir = outputsDir;
     this.verboseMode = verboseMode;
     this.taskLogger = taskLogger;
+    this.styledOut = styledOut;
+    this.reproduceLineExtension = reproduceLineExtension;
   }
 
   @Override
@@ -54,11 +63,11 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   }
 
   @Override
-  public void beforeSuite(TestDescriptor suite) {}
+  public void beforeSuite(TestDescriptor testDescriptor) {
+  }
 
   @Override
   public void beforeTest(TestDescriptor testDescriptor) {
-    // Noop.
   }
 
   private static final int WARN_OUTPUT_SIZE_LIMIT = 1024 * 1024 * 10;
@@ -99,22 +108,42 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
         }
 
         if (!verboseMode) {
-          synchronized (this) {
-            if (Files.size(outputLog) > WARN_OUTPUT_SIZE_LIMIT) {
-              taskLogger.warn(
-                  suite.getClassName()
-                      + " > test suite's output saved to "
-                      + outputLog
-                      + ", too large to echo to the logger ("
-                      + Files.size(outputLog)
-                      + " bytes).");
-            } else {
-              taskLogger.warn(
-                  suite.getClassName()
-                      + " > test suite's output saved to "
-                      + outputLog
-                      + ", and copied below:");
-              taskLogger.warn(Files.readString(outputLog, StandardCharsets.UTF_8));
+          if (!taskLogger.isEnabled(LogLevel.LIFECYCLE)) {
+            taskLogger.error(
+                suite.getDisplayName() + " > TESTS FAILED\n    Test output at: " + outputLog);
+          } else {
+            synchronized (styledOut) {
+              styledOut.append("\n");
+              styledOut
+                  .append(suite.getDisplayName())
+                  .append(" > ")
+                  .style(StyledTextOutput.Style.Failure)
+                  .append("TESTS FAILED\n")
+                  .style(StyledTextOutput.Style.Normal);
+
+              if (reproduceLineExtension != null) {
+                styledOut
+                    .append("    reproduce with: ")
+                    .style(StyledTextOutput.Style.Success)
+                    .append(reproduceLineExtension.getGradleReproLine(suite))
+                    .style(StyledTextOutput.Style.Normal)
+                    .append("\n");
+              }
+
+              styledOut
+                  .append("    test suite's output: ")
+                  .style(StyledTextOutput.Style.Success)
+                  .append(outputLog.toString())
+                  .style(StyledTextOutput.Style.Normal);
+
+              if (Files.size(outputLog) > WARN_OUTPUT_SIZE_LIMIT) {
+                styledOut.append(
+                    " (too large to display here: " + Files.size(outputLog) + " bytes).\n");
+              } else {
+                styledOut.append(" (copied below):\n");
+                styledOut.style(StyledTextOutput.Style.Info);
+                styledOut.append(Files.readString(outputLog, StandardCharsets.UTF_8));
+              }
             }
           }
         }
@@ -141,12 +170,21 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
 
   @Override
   public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-    // Include test failure exception stacktrace(s) in test output log.
+    // Include the failure exception stacktrace(s) in the test's output log.
     if (result.getResultType() == TestResult.ResultType.FAILURE) {
+      OutputHandler outputHandler = handlerFor(testDescriptor);
+      outputHandler.write(
+          "Test: "
+              + testDescriptor.getClassName()
+              + "."
+              + testDescriptor.getDisplayName()
+              + " FAILED\n");
       if (!result.getExceptions().isEmpty()) {
         String message = formatter.format(testDescriptor, result.getExceptions());
-        handlerFor(testDescriptor).write(message);
+        outputHandler.write("Exception:\n");
+        outputHandler.write(message);
       }
+      outputHandler.write("\n");
     }
   }
 

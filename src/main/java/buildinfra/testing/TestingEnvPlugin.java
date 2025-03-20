@@ -32,6 +32,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,6 +93,9 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
 
   @Inject
   protected abstract BuildFeatures getBuildFeatures();
+
+  @Inject
+  protected abstract StyledTextOutputFactory getStyledOutputFactory();
 
   @Inject
   public TestingEnvPlugin(Problems problems) {
@@ -241,11 +245,20 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
         project.getExtensions().getByType(BuildOptionsExtension.class);
     var testTasks =
         project.getExtensions().getByType(TestingProjectExtension.class).getTestTasks(project);
+    configureReproduceLineExtension(testTasks);
     configureHtmlReportsOption(buildOptions, testTasks);
     configureTestTaskOptions(project, buildOptions, testTasks);
     configureRandomizedTestingOptions(
         project, buildOptions, testTasks, ":" + PRINT_RANDOMIZATION_SEED_INFO_TASK_NAME);
     configureGlobalTestSummary(project, testTasks);
+  }
+
+  private void configureReproduceLineExtension(TaskCollection<Test> testTasks) {
+    testTasks.configureEach(
+        task -> {
+          task.getExtensions()
+              .create("reproduceLine", ReproduceLineExtension.class, task.getPath());
+        });
   }
 
   private void configureGlobalTestSummary(Project project, TaskCollection<Test> testTasks) {
@@ -296,8 +309,11 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
       TaskCollection<Test> testTasks,
       String printSeedTaskName) {
 
-    var stackfilteringOption =
-        buildOptions.addOption("tests.stackfiltering", "Enable or disable stack filtering.");
+    var stackFilteringOption =
+        buildOptions.addOption(
+            "tests.stackfiltering",
+            "Removes internal JDK and randomizedtesting stack frames from stack dumps.",
+            "true");
     var itersOption =
         buildOptions.addOption(
             "tests.iters", "Repeats randomized tests the provided number of times.");
@@ -319,16 +335,23 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           task.dependsOn(printSeedTaskName);
           task.systemProperty("tests.seed", rootSeed.get());
 
+          ReproduceLineExtension reproLineExtension =
+              task.getExtensions().getByType(ReproduceLineExtension.class);
+          reproLineExtension.addGradleProperty("tests.seed", rootSeed.get());
+
           for (var opt :
               List.of(
-                  stackfilteringOption,
                   assertsOption,
                   itersOption,
                   filterOption,
                   timeoutOption,
-                  timeoutSuiteOption)) {
+                  timeoutSuiteOption,
+                  stackFilteringOption)) {
             if (opt.getValue().isPresent()) {
-              task.systemProperty(opt.getName(), opt.asStringProvider().get());
+              String optName = opt.getName();
+              String value = opt.asStringProvider().get();
+              task.systemProperty(optName, value);
+              reproLineExtension.addBuildOption(opt);
             }
           }
         });
@@ -371,6 +394,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
         task -> {
           var projectDir = project.getLayout().getProjectDirectory();
 
+          var reproLineExtension = task.getExtensions().getByType(ReproduceLineExtension.class);
+
           // do not fail immediately.
           task.getFilter().setFailOnNoMatchingTests(false);
 
@@ -405,6 +430,9 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           }
 
           if (jvmArgsOption.getValue().isPresent()) {
+            String jvmArgs = jvmArgsOption.getValue().get().value();
+            reproLineExtension.addGradleProperty("tests.jvmargs", jvmArgs);
+
             task.getJvmArgumentProviders()
                 .add(
                     new CommandLineArgumentProvider() {
@@ -449,16 +477,26 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
   }
 
   /** Set up error logging and a custom error stream redirector. */
-  private static void installOutputHandlers(
+  private void installOutputHandlers(
       Test task, FileSystemOperations filesystemOps, boolean verboseMode) {
+    var stackFiltering =
+        task.getProject()
+            .getExtensions()
+            .getByType(BuildOptionsExtension.class)
+            .getOption("tests.stackfiltering")
+            .asBooleanProvider()
+            .getOrElse(true);
+
     TestLoggingContainer container = task.getTestLogging();
     container.events();
     container.setExceptionFormat(TestExceptionFormat.SHORT);
     container.setShowExceptions(true);
     container.setShowCauses(false);
     container.setShowStackTraces(false);
-    container.getStackTraceFilters().clear();
     container.setShowStandardStreams(false);
+    if (!stackFiltering) {
+      container.getStackTraceFilters().clear();
+    }
 
     Path spillDir = task.getTemporaryDir().toPath();
     Path testOutputsDir =
@@ -485,11 +523,19 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
     logging.setShowExceptions(true);
     logging.setShowCauses(true);
     logging.setShowStackTraces(true);
-    logging.getStackTraceFilters().clear();
+    if (!stackFiltering) {
+      logging.getStackTraceFilters().clear();
+    }
 
     var listener =
         new ErrorReportingTestListener(
-            task.getLogger(), logging, spillDir, testOutputsDir, verboseMode);
+            task.getLogger(),
+            getStyledOutputFactory().create(this.getClass()),
+            task.getExtensions().findByType(ReproduceLineExtension.class),
+            logging,
+            spillDir,
+            testOutputsDir,
+            verboseMode);
     task.addTestOutputListener(listener);
     task.addTestListener(listener);
   }
