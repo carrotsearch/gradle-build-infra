@@ -25,13 +25,11 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.jetbrains.annotations.NotNull;
@@ -527,10 +525,17 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
       logging.getStackTraceFilters().clear();
     }
 
+    StyledTextOutput styledOut;
+    if (getBuildFeatures().getConfigurationCache().getRequested().getOrElse(false)) {
+      styledOut = null;
+    } else {
+      styledOut = getStyledOutputFactory().create(this.getClass());
+    }
+
     var listener =
         new ErrorReportingTestListener(
             task.getLogger(),
-            getStyledOutputFactory().create(this.getClass()),
+            styledOut,
             task.getExtensions().findByType(ReproduceLineExtension.class),
             logging,
             spillDir,

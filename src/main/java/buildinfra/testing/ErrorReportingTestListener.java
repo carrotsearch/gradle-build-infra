@@ -7,6 +7,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -105,9 +106,14 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
         }
 
         if (!verboseMode) {
-          if (!taskLogger.isEnabled(LogLevel.LIFECYCLE)) {
+          if (!taskLogger.isEnabled(LogLevel.LIFECYCLE) || styledOut == null) {
             taskLogger.error(
-                suite.getDisplayName() + " > TESTS FAILED\n    Test output at: " + outputLog);
+                String.join(
+                    "\n    ",
+                    Arrays.asList(
+                        suite.getDisplayName() + " > TESTS FAILED",
+                        "test suite's output: " + outputLog,
+                        "reproduce with: " + reproduceLineExtension.getGradleReproLine(suite))));
           } else {
             synchronized (styledOut) {
               styledOut.append("\n");
