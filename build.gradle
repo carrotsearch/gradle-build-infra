@@ -1,68 +1,86 @@
 plugins {
   id "java-gradle-plugin"
+  id 'signing'
+  id 'com.gradle.plugin-publish' version '1.3.1'
 }
+
+group = "com.carrotsearch.gradle.build-infra"
+version = buildInfraLibs.versions.projectVersion.get()
 
 repositories {
   mavenCentral()
   gradlePluginPortal()
 }
 
+tasks.withType(Javadoc).configureEach {
+  it.options.addBooleanOption("Xdoclint:none", true)
+}
+
 gradlePlugin {
+  website = 'https://github.com/carrotsearch/gradle-build-infra'
+  vcsUrl = 'https://github.com/carrotsearch/gradle-build-infra.git'
+
   plugins {
     BuildInfraPlugin {
-      id = 'buildinfra'
+      id = 'com.carrotsearch.gradle.buildinfra'
       implementationClass = 'buildinfra.BuildInfraPlugin'
     }
 
     BuildOptionsPlugin {
-      id = 'buildinfra.buildoptions'
+      id = 'com.carrotsearch.gradle.buildinfra.buildoptions'
       implementationClass = 'buildinfra.buildoptions.BuildOptionsPlugin'
     }
 
     GitInfoPlugin {
-      id = 'buildinfra.environment.gitinfo'
+      id = 'com.carrotsearch.gradle.buildinfra.environment.gitinfo'
       implementationClass = 'buildinfra.environment.GitInfoPlugin'
     }
 
     GradleConsistentWithWrapperPlugin {
-      id = 'buildinfra.environment.gradle-wrapper-used'
+      id = 'com.carrotsearch.gradle.buildinfra.environment.gradle-wrapper-used'
       implementationClass = 'buildinfra.environment.GradleConsistentWithWrapperPlugin'
     }
 
     ApplyForbiddenApisPlugin {
-      id = "buildinfra.conventions.forbiddenapis"
+      id = "com.carrotsearch.gradle.buildinfra.conventions.forbiddenapis"
       implementationClass = 'buildinfra.conventions.ApplyForbiddenApisPlugin'
     }
 
     ApplyRegisterCommonTasksPlugin {
-      id = "buildinfra.conventions.commontasks"
+      id = "com.carrotsearch.gradle.buildinfra.conventions.commontasks"
       implementationClass = 'buildinfra.conventions.ApplyRegisterCommonTasksPlugin'
     }
 
     ApplySpotlessFormattingPlugin {
-      id = "buildinfra.conventions.spotless"
+      id = "com.carrotsearch.gradle.buildinfra.conventions.spotless"
       implementationClass = 'buildinfra.conventions.ApplySpotlessFormattingPlugin'
     }
 
     ApplyVersionsTomlCleanupsPlugin {
-      id = "buildinfra.conventions.cleanup-versions"
+      id = "com.carrotsearch.gradle.buildinfra.conventions.cleanup-versions"
       implementationClass = 'buildinfra.conventions.ApplyVersionsTomlCleanupsPlugin'
     }
 
     ApplyReproducibleBuildsPlugin {
-      id = "buildinfra.conventions.reproducible-builds"
+      id = "com.carrotsearch.gradle.buildinfra.conventions.reproducible-builds"
       implementationClass = 'buildinfra.conventions.ApplyReproducibleBuildsPlugin'
     }
 
     DependencyChecksPlugin {
-      id = "buildinfra.versions-lock"
+      id = "com.carrotsearch.gradle.buildinfra.versions-lock"
       implementationClass = 'buildinfra.dependencychecks.DependencyChecksPlugin'
     }
 
     TestingEnvPlugin {
-      id = "buildinfra.testing-env"
+      id = "com.carrotsearch.gradle.buildinfra.testing-env"
       implementationClass = 'buildinfra.testing.TestingEnvPlugin'
     }
+  }
+
+  plugins.configureEach { pluginDecl ->
+    displayName = pluginDecl.id + " part of buildinfra plugin"
+    description = pluginDecl.id + " part of buildinfra plugin"
+    tags.set(['convention', 'built-utility', 'testing', 'randomizedtesting'])
   }
 }
 
@@ -81,4 +99,14 @@ java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(buildInfraLibs.versions.minJava.get())
   }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
 }

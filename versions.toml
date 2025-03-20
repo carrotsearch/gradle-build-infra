@@ -1,6 +1,7 @@
 [versions]
 minJava = "21"
 googleJavaFormat = "1.25.2"
+projectVersion = "0.0.1"
 
 [libraries]
 spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.0.1"
