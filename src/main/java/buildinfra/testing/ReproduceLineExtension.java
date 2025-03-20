@@ -1,13 +1,11 @@
 package buildinfra.testing;
 
 import buildinfra.buildoptions.BuildOption;
-import buildinfra.buildoptions.BuildOptionValue;
 import buildinfra.buildoptions.BuildOptionValueSource;
-import org.apache.tools.ant.types.Commandline;
-import org.gradle.api.tasks.testing.TestDescriptor;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.tools.ant.types.Commandline;
+import org.gradle.api.tasks.testing.TestDescriptor;
 
 public class ReproduceLineExtension {
   private final String taskPath;

@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.logging.LogLevel;
@@ -63,12 +62,10 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   }
 
   @Override
-  public void beforeSuite(TestDescriptor testDescriptor) {
-  }
+  public void beforeSuite(TestDescriptor testDescriptor) {}
 
   @Override
-  public void beforeTest(TestDescriptor testDescriptor) {
-  }
+  public void beforeTest(TestDescriptor testDescriptor) {}
 
   private static final int WARN_OUTPUT_SIZE_LIMIT = 1024 * 1024 * 10;
 
