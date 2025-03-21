@@ -1,8 +1,9 @@
 package buildinfra;
 
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 
-public abstract class BuildInfraExtension {
+public abstract class BuildInfraExtension implements ExtensionAware {
   public static final String NAME = "buildinfra";
 
   /**
