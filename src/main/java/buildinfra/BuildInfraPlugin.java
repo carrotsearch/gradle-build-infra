@@ -29,7 +29,6 @@ public class BuildInfraPlugin extends AbstractPlugin {
     // register extensions.
     var ext =
         rootProject.getExtensions().create(BuildInfraExtension.NAME, BuildInfraExtension.class);
-
     List<String> taskNames = rootProject.getGradle().getStartParameter().getTaskNames();
     ext.getIntelliJIdea()
         .value(

@@ -12,7 +12,7 @@ buildInfra {
 }
 
 If a sub-plugin is not enabled, it'd error out because these extensions would be added
-dynamicaly. [doable]
+dynamically.
 
 - add tests, perhaps as a separate project so that the build-infra can be used independently
 as a submodule?
