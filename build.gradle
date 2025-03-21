@@ -24,63 +24,10 @@ gradlePlugin {
     BuildInfraPlugin {
       id = 'com.carrotsearch.gradle.buildinfra'
       implementationClass = 'buildinfra.BuildInfraPlugin'
+      displayName = "Reusable, opinionated gradle build infrastructure"
+      description = "Reusable, opinionated gradle build infrastructure"
+      tags.set(['convention', 'built-utility', 'testing', 'randomizedtesting'])
     }
-
-    BuildOptionsPlugin {
-      id = 'com.carrotsearch.gradle.buildinfra.buildoptions'
-      implementationClass = 'buildinfra.buildoptions.BuildOptionsPlugin'
-    }
-
-    GitInfoPlugin {
-      id = 'com.carrotsearch.gradle.buildinfra.environment.gitinfo'
-      implementationClass = 'buildinfra.environment.GitInfoPlugin'
-    }
-
-    GradleConsistentWithWrapperPlugin {
-      id = 'com.carrotsearch.gradle.buildinfra.environment.gradle-wrapper-used'
-      implementationClass = 'buildinfra.environment.GradleConsistentWithWrapperPlugin'
-    }
-
-    ApplyForbiddenApisPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.conventions.forbiddenapis"
-      implementationClass = 'buildinfra.conventions.ApplyForbiddenApisPlugin'
-    }
-
-    ApplyRegisterCommonTasksPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.conventions.commontasks"
-      implementationClass = 'buildinfra.conventions.ApplyRegisterCommonTasksPlugin'
-    }
-
-    ApplySpotlessFormattingPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.conventions.spotless"
-      implementationClass = 'buildinfra.conventions.ApplySpotlessFormattingPlugin'
-    }
-
-    ApplyVersionsTomlCleanupsPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.conventions.cleanup-versions"
-      implementationClass = 'buildinfra.conventions.ApplyVersionsTomlCleanupsPlugin'
-    }
-
-    ApplyReproducibleBuildsPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.conventions.reproducible-builds"
-      implementationClass = 'buildinfra.conventions.ApplyReproducibleBuildsPlugin'
-    }
-
-    DependencyChecksPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.versions-lock"
-      implementationClass = 'buildinfra.dependencychecks.DependencyChecksPlugin'
-    }
-
-    TestingEnvPlugin {
-      id = "com.carrotsearch.gradle.buildinfra.testing-env"
-      implementationClass = 'buildinfra.testing.TestingEnvPlugin'
-    }
-  }
-
-  plugins.configureEach { pluginDecl ->
-    displayName = pluginDecl.id + " part of buildinfra plugin"
-    description = pluginDecl.id + " part of buildinfra plugin"
-    tags.set(['convention', 'built-utility', 'testing', 'randomizedtesting'])
   }
 }
 

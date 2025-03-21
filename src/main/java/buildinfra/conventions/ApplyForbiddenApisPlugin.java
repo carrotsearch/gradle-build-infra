@@ -131,7 +131,7 @@ public class ApplyForbiddenApisPlugin extends AbstractPlugin {
                                 file -> {
                                   var exists = Files.exists(file.toPath());
                                   task.getLogger()
-                                      .debug(
+                                      .info(
                                           "Forbidden APIs signature file: {}{}",
                                           file.toPath(),
                                           exists ? " (exists)" : " (does not exist)");

@@ -36,29 +36,6 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     // Apply gradle script formatting to all projects.
     applyGradleScriptsFormatting(project, spotlessExtension);
 
-    // Add an extra format to cover buildinfra's sources (if they exist).
-    ProjectLayout projectLayout = project.getLayout();
-    if (project == project.getRootProject()
-        && projectLayout.getProjectDirectory().file("build-infra").getAsFile().exists()) {
-      var licenseHeaderFile =
-          project
-              .getObjects()
-              .fileProperty()
-              .convention(
-                  project
-                      .getLayout()
-                      .getProjectDirectory()
-                      .file("build-infra/gradle/spotless/license-header.txt"));
-
-      spotlessExtension.format(
-          "buildinfra",
-          JavaExtension.class,
-          java -> {
-            java.target("build-infra/**/*.java");
-            applyJavaFormatterSettings(java, licenseHeaderFile, gjfVersionString);
-          });
-    }
-
     // Apply java formatting settings to all java projects.
     var licenseHeaderFile =
         project
