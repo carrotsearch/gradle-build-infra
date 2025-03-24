@@ -5,7 +5,12 @@ import com.diffplug.gradle.spotless.GroovyGradleExtension;
 import com.diffplug.gradle.spotless.JavaExtension;
 import com.diffplug.gradle.spotless.SpotlessExtension;
 import com.diffplug.gradle.spotless.SpotlessPlugin;
+import com.diffplug.spotless.FormatterFunc;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
@@ -128,6 +133,32 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     java.importOrder();
     java.removeUnusedImports();
     java.trimTrailingWhitespace();
+    java.endWithNewline();
+
+    // Idea from: https://github.com/opensearch-project/opensearch-java/pull/1180/files
+    java.custom(
+        "Refuse wildcard imports",
+        new FormatterFunc() {
+          private final Pattern wildcardImport =
+              Pattern.compile("(^import)(\\s+)(?:static\\s*)?([^*\\s]+\\.\\*;)", Pattern.MULTILINE);
+
+          @Override
+          public String apply(String input) throws Exception {
+            Matcher matcher = wildcardImport.matcher(input);
+            ArrayList<String> matches = new ArrayList<>();
+            while (matcher.find()) {
+              matches.add(matcher.group());
+            }
+
+            if (matches.isEmpty()) {
+              return input;
+            }
+
+            throw new AssertionError(
+                "Replace wildcard imports with explicit imports (spotless can't fix it):\n"
+                    + matches.stream().map(e -> "  - " + e).collect(Collectors.joining("\n")));
+          }
+        });
 
     var gjf = java.googleJavaFormat(googleVecVersion);
     gjf.formatJavadoc(true);
