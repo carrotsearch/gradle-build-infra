@@ -21,7 +21,7 @@ buildinfra {
 }
 ```
 
-Plugin: ```buildinfra.environment.GitInfoPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin```
 --
 
 Exposes the following extension on the root project:
@@ -42,7 +42,7 @@ with the following defaults:
 ```
 
 
-Plugin: ```buildinfra.buildoptions.BuildOptionsPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin```
 --
 
 Adds the infrastructure for "build options". Build options are named gradle Property<String>
@@ -74,7 +74,7 @@ the output for both):
 
 Other plugins in buildinfra add their configurable settings as build options.
 
-Plugin: ```buildinfra.testing.TestingEnvPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.testing.TestingEnvPlugin```
 --
 
 Sets up convenient defaults for ```Test``` tasks, with particular focus
@@ -113,20 +113,20 @@ modify their defaults using command line, environment variables or your local, n
 ./gradlew test -Ptests.rerun=true "-Ptests.jvmargs=-verbose:gc" -Ptests.verbose=true --max-workers=1
 ```
 
-Plugin: ```buildinfra.conventions.ApplyReproducibleBuildsPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyReproducibleBuildsPlugin```
 --
 
 Sets up sane defaults for all ```AbstractArchiveTask``` tasks. These include predictable file order,
 no timestamps and constant (unix) file permissions.
 
-Plugin: ```buildinfra.conventions.ApplyRegisterCommonTasksPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyRegisterCommonTasksPlugin```
 --
 
 Configures common convention tasks for all projects.
 
 * ```tidy```: apply all convention-required cleanups (like code formatting, etc.).
 
-Plugin: ```buildinfra.conventions.ApplyForbiddenApisPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyForbiddenApisPlugin```
 --
 
 Sets up (forbidden-apis)[https://github.com/policeman-tools/forbidden-apis] API checker
@@ -143,7 +143,7 @@ file.
 
 Hooks up to the ```check``` task to verify code compliance.
 
-Plugin: ```buildinfra.conventions.ApplySpotlessFormattingPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplySpotlessFormattingPlugin```
 --
 
 Sets up (spotless)[https://github.com/diffplug/spotless] to reformat Java and other files
@@ -151,7 +151,7 @@ when ```tidy``` task is run. Hooks up to the ```check``` task to verify code com
 
 Google Java Formatter is used.
 
-Plugin: ```buildinfra.dependencychecks.DependencyChecksPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin```
 --
 
 Generates a top-level ```versions.lock``` dependency lock file for selected
