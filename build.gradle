@@ -30,7 +30,7 @@ dependencies {
 
 gradlePlugin {
   website = project.ext.websiteAddress
-  vcsUrl = project.ext.vcsAddress
+  vcsUrl = project.ext.websiteAddress + ".git"
 
   plugins {
     BuildInfraPlugin {
