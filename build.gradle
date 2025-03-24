@@ -54,15 +54,31 @@ java {
   }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allJava
+tasks.register("sourcesJar", Jar, {
+  dependsOn classes
+  archiveClassifier = 'sources'
+  from sourceSets.main.allJava
+})
+
+tasks.register("javadocJar", Jar, {
+  dependsOn javadoc
+  archiveClassifier = 'javadoc'
+  from javadoc.destinationDir
+})
+
+tasks.matching { it.name == "publishPluginMavenPublicationToSonatypeRepository" }.configureEach {
+  doFirst {
+    if (gradle.startParameter.maxWorkerCount != 1) {
+      throw new GradleException("Use --worker-count 1 to prevent multiple uploads.")
+    }
+  }
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
+tasks.register("publishToSonatype", {
+  description = "Publish plugin to Sonatype"
+  group = "Publishing"
+  dependsOn "publishPluginMavenPublicationToSonatypeRepository"
+})
 
 publishing {
   repositories {
