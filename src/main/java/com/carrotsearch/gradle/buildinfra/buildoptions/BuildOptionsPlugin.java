@@ -3,6 +3,7 @@ package com.carrotsearch.gradle.buildinfra.buildoptions;
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -39,8 +40,10 @@ public class BuildOptionsPlugin extends AbstractPlugin {
 
     public String getDisplayName() {
       return String.format(
+          Locale.ROOT,
           "override of '%s' in property file %s",
-          getParameters().getName().get(), getParameters().getSourceFile().get());
+          getParameters().getName().get(),
+          getParameters().getSourceFile().get());
     }
 
     public abstract static class Parameters implements ValueSourceParameters {

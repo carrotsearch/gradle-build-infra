@@ -134,7 +134,7 @@ public final class DependencyChecksPlugin extends AbstractPlugin {
     if (project.getRootProject() != project) {
       project.getRootProject().getPlugins().apply(DependencyChecksPlugin.class);
     } else {
-        var resolutionTasks =
+      var resolutionTasks =
           project.getAllprojects().stream()
               .map(
                   prj ->

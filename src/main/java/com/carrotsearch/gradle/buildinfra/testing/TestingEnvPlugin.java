@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import javax.inject.Inject;
 import org.apache.tools.ant.types.Commandline;
@@ -171,7 +172,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
             .addOption(
                 "tests.seed",
                 "Root randomization seed for randomizedtesting.",
-                project.provider(() -> String.format("%08X", new Random().nextLong())));
+                project.provider(
+                    () -> String.format(Locale.ROOT, "%08X", new Random().nextLong())));
 
     Property<String> rootSeed = ext.getRootSeed();
     rootSeed.set(rootSeedOption.asStringProvider());

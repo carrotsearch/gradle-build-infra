@@ -1,9 +1,11 @@
 package com.carrotsearch.gradle.buildinfra.testing;
 
+import de.thetaphi.forbiddenapis.SuppressForbidden;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Writer;
 
+@SuppressForbidden()
 class StdOutTeeWriter extends Writer {
   private final Writer delegate;
   private final PrintStream out = System.out;

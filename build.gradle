@@ -3,28 +3,34 @@ plugins {
   id 'signing'
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version '1.3.1'
+  id 'com.carrotsearch.gradle.buildinfra' version '0.0.2'
 }
-
-group = "com.carrotsearch.gradle.buildinfra"
-version = buildInfraLibs.versions.projectVersion.get()
-
-project.description = "Reusable, opinionated gradle build infrastructure"
-def websiteAddress = "https://github.com/carrotsearch/gradle-build-infra"
-def vcsAddress = "git@github.com:carrotsearch/gradle-build-infra.git"
-
 
 repositories {
   mavenCentral()
   gradlePluginPortal()
 }
 
-tasks.withType(Javadoc).configureEach {
-  it.options.addBooleanOption("Xdoclint:none", true)
+project.group = "com.carrotsearch.gradle.buildinfra"
+project.version = libs.versions.projectVersion.get()
+project.description = "Reusable, opinionated gradle build infrastructure"
+project.ext.websiteAddress = "https://github.com/carrotsearch/gradle-build-infra"
+project.ext.vcsAddress = "git@github.com:carrotsearch/gradle-build-infra.git"
+
+dependencies {
+  implementation(libs.spotless.plugin) {
+    exclude module: "groovy-xml"
+  }
+  implementation(libs.forbiddenapis.plugin)
+  implementation(libs.benmanes.versions.plugin)
+  implementation(libs.version.catalog.update.plugin)
+  implementation(libs.jackson.databind)
+  implementation(libs.carrotsearch.procfork)
 }
 
 gradlePlugin {
-  website = websiteAddress
-  vcsUrl = vcsAddress
+  website = project.ext.websiteAddress
+  vcsUrl = project.ext.vcsAddress
 
   plugins {
     BuildInfraPlugin {
@@ -32,25 +38,23 @@ gradlePlugin {
       implementationClass = 'com.carrotsearch.gradle.buildinfra.BuildInfraPlugin'
       displayName = project.description
       description = project.description
-      tags.set(['convention', 'built-utility', 'testing', 'randomizedtesting'])
+      tags.set([
+        'convention',
+        'built-utility',
+        'testing',
+        'randomizedtesting'
+      ])
     }
   }
 }
 
-dependencies {
-  implementation(buildInfraLibs.spotless.plugin) {
-    exclude module: "groovy-xml"
-  }
-  implementation(buildInfraLibs.forbiddenapis.plugin)
-  implementation(buildInfraLibs.benmanes.versions.plugin)
-  implementation(buildInfraLibs.version.catalog.update.plugin)
-  implementation(buildInfraLibs.jackson.databind)
-  implementation(buildInfraLibs.carrotsearch.procfork)
+tasks.withType(Javadoc).configureEach {
+  it.options.addBooleanOption("Xdoclint:none", true)
 }
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(buildInfraLibs.versions.minJava.get())
+    languageVersion = JavaLanguageVersion.of(libs.versions.minJava.get())
   }
 }
 
@@ -89,14 +93,14 @@ publishing {
 
     maven {
       name = 'sonatype'
-      url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
 
       credentials {
         if (project.hasProperty('nexusUsername')) {
-          username project.nexusUsername
+          username = project.nexusUsername
         }
         if (project.hasProperty('nexusPassword')) {
-          password project.nexusPassword
+          password = project.nexusPassword
         }
       }
     }
@@ -132,8 +136,8 @@ publishing {
         }
 
         scm {
-          connection = 'scm:git:' + vcsAddress
-          developerConnection = vcsAddress
+          connection = 'scm:git:' + project.ext.vcsAddress
+          developerConnection = project.ext.vcsAddress
           url = websiteAddress
         }
       }

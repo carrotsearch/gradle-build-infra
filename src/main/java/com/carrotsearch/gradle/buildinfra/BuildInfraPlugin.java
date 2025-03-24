@@ -5,10 +5,9 @@ import com.carrotsearch.gradle.buildinfra.conventions.*;
 import com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GradleConsistentWithWrapperPlugin;
+import com.carrotsearch.gradle.buildinfra.testing.TestingEnvPlugin;
 import java.util.List;
 import javax.inject.Inject;
-
-import com.carrotsearch.gradle.buildinfra.testing.TestingEnvPlugin;
 import org.gradle.api.Project;
 import org.gradle.api.problems.Problems;
 
