@@ -77,7 +77,7 @@ tasks.matching { it.name == "publishPluginMavenPublicationToSonatypeRepository" 
 tasks.register("publishToSonatype", {
   description = "Publish plugin to Sonatype"
   group = "Publishing"
-  dependsOn "publishPluginMavenPublicationToSonatypeRepository"
+  dependsOn "publishAllPublicationsToBuildRepository"
 })
 
 publishing {
