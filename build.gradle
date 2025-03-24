@@ -69,7 +69,7 @@ tasks.register("javadocJar", Jar, {
 tasks.matching { it.name == "publishAllPublicationsToSonatypeRepository" }.configureEach {
   doFirst {
     if (gradle.startParameter.maxWorkerCount != 1) {
-      throw new GradleException("Use --worker-count 1 to prevent multiple uploads.")
+      throw new GradleException("Use '--max-workers 1' to prevent multiple uploads.")
     }
   }
 }
