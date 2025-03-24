@@ -1,7 +1,11 @@
 package com.carrotsearch.gradle.buildinfra;
 
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin;
-import com.carrotsearch.gradle.buildinfra.conventions.*;
+import com.carrotsearch.gradle.buildinfra.conventions.ApplyForbiddenApisPlugin;
+import com.carrotsearch.gradle.buildinfra.conventions.ApplyRegisterCommonTasksPlugin;
+import com.carrotsearch.gradle.buildinfra.conventions.ApplyReproducibleBuildsPlugin;
+import com.carrotsearch.gradle.buildinfra.conventions.ApplySpotlessFormattingPlugin;
+import com.carrotsearch.gradle.buildinfra.conventions.ApplyVersionsTomlCleanupsPlugin;
 import com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GradleConsistentWithWrapperPlugin;

@@ -13,7 +13,11 @@ import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.provider.*;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -1,7 +1,10 @@
 package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**

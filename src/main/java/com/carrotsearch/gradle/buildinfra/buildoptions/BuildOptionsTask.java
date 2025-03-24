@@ -2,7 +2,10 @@ package com.carrotsearch.gradle.buildinfra.buildoptions;
 
 import java.util.Comparator;
 import javax.inject.Inject;
-import org.gradle.api.*;
+
+import org.gradle.api.DefaultTask;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Project;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.text.StyledTextOutput;

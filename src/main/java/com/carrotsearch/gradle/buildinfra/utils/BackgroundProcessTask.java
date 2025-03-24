@@ -13,11 +13,21 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import org.gradle.api.*;
+
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskProvider;
 
 public abstract class BackgroundProcessTask extends DefaultTask {
   @Input

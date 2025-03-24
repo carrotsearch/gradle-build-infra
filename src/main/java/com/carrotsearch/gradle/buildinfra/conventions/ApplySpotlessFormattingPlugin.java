@@ -18,6 +18,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
+import java.io.Serializable;
 
 public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
   @Inject
@@ -122,6 +123,27 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     return gjfVersion.get().toString();
   }
 
+  public static class WildcardImportDetector implements Serializable, FormatterFunc {
+    private final Pattern wildcardImport =
+        Pattern.compile("(^import)(\\s+)(?:static\\s*)?([^*\\s]+\\.\\*;)", Pattern.MULTILINE);
+
+    @Override
+    public String apply(String input) throws Exception {
+      Matcher matcher = wildcardImport.matcher(input);
+      ArrayList<String> matches = new ArrayList<>();
+      while (matcher.find()) {
+        matches.add(matcher.group());
+      }
+
+      if (matches.isEmpty()) {
+        return input;
+      }
+
+      throw new AssertionError(
+          "Replace with explicit imports (spotless can't fix it): " + matches.iterator().next());
+    }
+  }
+
   private void applyJavaFormatterSettings(
       JavaExtension java, RegularFileProperty licenseHeader, String googleVecVersion) {
 
@@ -137,28 +159,7 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
 
     // Idea from: https://github.com/opensearch-project/opensearch-java/pull/1180/files
     java.custom(
-        "Refuse wildcard imports",
-        new FormatterFunc() {
-          private final Pattern wildcardImport =
-              Pattern.compile("(^import)(\\s+)(?:static\\s*)?([^*\\s]+\\.\\*;)", Pattern.MULTILINE);
-
-          @Override
-          public String apply(String input) throws Exception {
-            Matcher matcher = wildcardImport.matcher(input);
-            ArrayList<String> matches = new ArrayList<>();
-            while (matcher.find()) {
-              matches.add(matcher.group());
-            }
-
-            if (matches.isEmpty()) {
-              return input;
-            }
-
-            throw new AssertionError(
-                "Replace wildcard imports with explicit imports (spotless can't fix it):\n"
-                    + matches.stream().map(e -> "  - " + e).collect(Collectors.joining("\n")));
-          }
-        });
+        "Wildcard imports disallowed ", new WildcardImportDetector());
 
     var gjf = java.googleJavaFormat(googleVecVersion);
     gjf.formatJavadoc(true);
