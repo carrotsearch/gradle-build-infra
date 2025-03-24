@@ -13,4 +13,4 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = 'gradle-build-infra-plugin'
+rootProject.name = 'gradle-buildinfra-plugin'

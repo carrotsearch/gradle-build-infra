@@ -1,11 +1,17 @@
 plugins {
   id "java-gradle-plugin"
   id 'signing'
+  id 'maven-publish'
   id 'com.gradle.plugin-publish' version '1.3.1'
 }
 
-group = "com.carrotsearch.gradle.build-infra"
+group = "com.carrotsearch.gradle.buildinfra"
 version = buildInfraLibs.versions.projectVersion.get()
+
+project.description = "Reusable, opinionated gradle build infrastructure"
+def websiteAddress = "https://github.com/carrotsearch/gradle-build-infra"
+def vcsAddress = "git@github.com:carrotsearch/gradle-build-infra.git"
+
 
 repositories {
   mavenCentral()
@@ -17,15 +23,15 @@ tasks.withType(Javadoc).configureEach {
 }
 
 gradlePlugin {
-  website = 'https://github.com/carrotsearch/gradle-build-infra'
-  vcsUrl = 'https://github.com/carrotsearch/gradle-build-infra.git'
+  website = websiteAddress
+  vcsUrl = vcsAddress
 
   plugins {
     BuildInfraPlugin {
       id = 'com.carrotsearch.gradle.buildinfra'
-      implementationClass = 'buildinfra.BuildInfraPlugin'
-      displayName = "Reusable, opinionated gradle build infrastructure"
-      description = "Reusable, opinionated gradle build infrastructure"
+      implementationClass = 'com.carrotsearch.gradle.buildinfra.BuildInfraPlugin'
+      displayName = project.description
+      description = project.description
       tags.set(['convention', 'built-utility', 'testing', 'randomizedtesting'])
     }
   }
@@ -56,4 +62,65 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
+}
+
+publishing {
+  repositories {
+    maven {
+      name = 'build'
+      url = project.layout.buildDirectory.dir("maven").get().asFile
+    }
+
+    maven {
+      name = 'sonatype'
+      url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+
+      credentials {
+        if (project.hasProperty('nexusUsername')) {
+          username project.nexusUsername
+        }
+        if (project.hasProperty('nexusPassword')) {
+          password project.nexusPassword
+        }
+      }
+    }
+  }
+
+  publications {
+    withType(MavenPublication) {
+      pom {
+        inceptionYear = "2025"
+
+        name = project.name
+        description = project.description
+        url = websiteAddress
+
+        licenses {
+          license {
+            name = 'Apache 2'
+            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        organization {
+          name = "Carrot Search s.c."
+          url = "https://www.carrotsearch.com"
+        }
+
+        developers {
+          developer {
+            id = 'dawid.weiss'
+            name = 'Dawid Weiss'
+            email = 'dawid.weiss@carrotsearch.com'
+          }
+        }
+
+        scm {
+          connection = 'scm:git:' + vcsAddress
+          developerConnection = vcsAddress
+          url = websiteAddress
+        }
+      }
+    }
+  }
 }
