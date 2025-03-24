@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;

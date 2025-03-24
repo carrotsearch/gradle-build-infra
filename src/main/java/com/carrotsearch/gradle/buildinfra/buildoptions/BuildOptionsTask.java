@@ -2,7 +2,6 @@ package com.carrotsearch.gradle.buildinfra.buildoptions;
 
 import java.util.Comparator;
 import javax.inject.Inject;
-
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;

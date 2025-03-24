@@ -6,11 +6,11 @@ import com.diffplug.gradle.spotless.JavaExtension;
 import com.diffplug.gradle.spotless.SpotlessExtension;
 import com.diffplug.gradle.spotless.SpotlessPlugin;
 import com.diffplug.spotless.FormatterFunc;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
@@ -18,7 +18,6 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
-import java.io.Serializable;
 
 public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
   @Inject
@@ -158,8 +157,7 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     java.endWithNewline();
 
     // Idea from: https://github.com/opensearch-project/opensearch-java/pull/1180/files
-    java.custom(
-        "Wildcard imports disallowed ", new WildcardImportDetector());
+    java.custom("Wildcard imports disallowed ", new WildcardImportDetector());
 
     var gjf = java.googleJavaFormat(googleVecVersion);
     gjf.formatJavadoc(true);
