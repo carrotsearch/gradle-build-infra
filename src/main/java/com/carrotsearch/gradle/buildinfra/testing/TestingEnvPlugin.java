@@ -220,16 +220,22 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                               return false;
                             });
                 if (verboseMode) {
-                  var testTasksCount =
+                  var testTaskPaths =
                       project.getAllprojects().stream()
-                          .mapToLong(
+                          .flatMap(
                               p -> {
                                 var ext =
                                     p.getExtensions().findByType(TestingProjectExtension.class);
-                                if (ext == null) return 0;
-                                return ext.getTestTasks(p).size();
+                                if (ext == null) return java.util.stream.Stream.of();
+                                else return ext.getTestTasks(p).stream();
                               })
-                          .sum();
+                          .map(org.gradle.api.DefaultTask::getPath)
+                          .collect(java.util.stream.Collectors.toSet());
+
+                  var testTasksCount =
+                      graph.getAllTasks().stream()
+                          .filter(t -> testTaskPaths.contains(t.getPath()))
+                          .count();
 
                   if (testTasksCount > 1) {
                     throw new GradleException(
