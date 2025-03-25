@@ -164,7 +164,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
   }
 
   private static String pluralize(String word, long count) {
-    return "" + count + " " + (count == 1 ? word : word + "s");
+    return count + " " + (count == 1 ? word : word + "s");
   }
 
   private static void installRootSeed(Project project, RootTestingProjectExtension ext) {
@@ -339,6 +339,12 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
 
     var ext = project.getRootProject().getExtensions().getByType(RootTestingProjectExtension.class);
     var rootSeed = ext.getRootSeed();
+
+    if (!isRootProject(project)) {
+      buildOptions.addOption(
+          "tests.seed", "Root randomization seed for randomizedtesting.", rootSeed);
+    }
+
     testTasks.configureEach(
         task -> {
           task.dependsOn(printSeedTaskName);
