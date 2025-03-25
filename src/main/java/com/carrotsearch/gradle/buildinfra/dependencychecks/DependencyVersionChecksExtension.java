@@ -1,6 +1,6 @@
 package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
 
@@ -10,5 +10,5 @@ public abstract class DependencyVersionChecksExtension {
   public abstract Property<String> getLockFileComment();
 
   @Nested
-  public abstract NamedDomainObjectSet<ConfigurationGroup> getConfigurationGroups();
+  public abstract NamedDomainObjectContainer<ConfigurationGroup> getConfigurationGroups();
 }
