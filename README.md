@@ -59,9 +59,26 @@ buildOptions {
   addOption("foo", "Option foo, no default value.")
   addOption("bar", "Option bar, with default value.", "baz")
 }
-// ...
-Provider<String> bar = buildOptions["bar"]
-Provider<String> foo = buildOptions["foo"]
+// or:
+BuildOption bazOption = buildOptions.addOption("baz", "Option baz.")
+
+// get a provider for the option's value
+{
+    Provider<String> bar = buildOptions["bar"]
+    Provider<String> foo = buildOptions["foo"]
+}
+
+// check if the option's value is present or not.
+{
+    Property<BuildOptionValue> foo = buildOptions.getOption("foo").getValue()
+    if (foo.isPresent()) {
+        String val = foo.get().toString()
+    }
+    // or directly, if BuildOption is available.
+    if (bazOption.getValue().isPresent()) {
+        String val = bazOption.getValue().get().toString()
+    }
+}
 ```
 
 Show all current option values for the project (compare
