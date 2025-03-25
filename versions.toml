@@ -4,7 +4,7 @@ minJava = "21"
 googleJavaFormat = "1.25.2"
 
 [libraries]
-spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.0.1"
+spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.0.2"
 forbiddenapis-plugin = "de.thetaphi:forbiddenapis:3.8"
 benmanes-versions-plugin = "com.github.ben-manes:gradle-versions-plugin:0.51.0"
 version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:0.8.5"
