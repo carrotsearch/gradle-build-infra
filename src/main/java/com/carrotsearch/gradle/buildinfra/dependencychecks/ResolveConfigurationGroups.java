@@ -127,6 +127,10 @@ public abstract class ResolveConfigurationGroups extends DefaultTask {
             .thenComparing(ModuleVersionIdentifier::getVersion);
 
     return allResolved.stream()
+        .filter(
+            dep ->
+                dep.getSelected().getId()
+                    instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier)
         .map(
             dep -> {
               return dep.getSelected().getModuleVersion();
