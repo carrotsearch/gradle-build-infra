@@ -4,6 +4,7 @@ import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin;
 import com.carrotsearch.gradle.buildinfra.conventions.ApplyForbiddenApisPlugin;
 import com.carrotsearch.gradle.buildinfra.conventions.ApplyRegisterCommonTasksPlugin;
 import com.carrotsearch.gradle.buildinfra.conventions.ApplyReproducibleBuildsPlugin;
+import com.carrotsearch.gradle.buildinfra.conventions.ApplySaneJavaDefaultsPlugin;
 import com.carrotsearch.gradle.buildinfra.conventions.ApplySpotlessFormattingPlugin;
 import com.carrotsearch.gradle.buildinfra.conventions.ApplyVersionsTomlCleanupsPlugin;
 import com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin;
@@ -27,6 +28,8 @@ public class BuildInfraPlugin extends AbstractPlugin {
 
     // apply other root-level, environment validation plugins.
     rootProject.getPlugins().apply(GradleConsistentWithWrapperPlugin.class);
+
+    rootProject.getTasks().register("noop", t -> {});
 
     // register extensions.
     var ext =
@@ -56,6 +59,7 @@ public class BuildInfraPlugin extends AbstractPlugin {
           pluginContainer.apply(ApplyReproducibleBuildsPlugin.class);
           pluginContainer.apply(ApplyForbiddenApisPlugin.class);
           pluginContainer.apply(ApplySpotlessFormattingPlugin.class);
+          pluginContainer.apply(ApplySaneJavaDefaultsPlugin.class);
           pluginContainer.apply(TestingEnvPlugin.class);
           pluginContainer.apply(DependencyChecksPlugin.class);
           pluginContainer.apply(ApplyVersionsTomlCleanupsPlugin.class);

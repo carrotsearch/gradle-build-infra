@@ -1,13 +1,11 @@
 package com.carrotsearch.gradle.buildinfra.conventions;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
-import java.util.Optional;
 import javax.inject.Inject;
 import nl.littlerobots.vcu.plugin.VersionCatalogUpdateExtension;
 import nl.littlerobots.vcu.plugin.VersionCatalogUpdateTask;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.VersionCatalog;
-import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.tasks.TaskProvider;
 
@@ -59,16 +57,9 @@ public class ApplyVersionsTomlCleanupsPlugin extends AbstractPlugin {
 
   private void keepVersionsOfBuildInfraReferences(
       Project project, VersionCatalogUpdateExtension ext) {
-    Optional<VersionCatalog> libsCatalog =
-        project.getExtensions().findByType(VersionCatalogsExtension.class).find("libs");
+    VersionCatalog libsCatalog = super.getLibsCatalog(project);
 
-    if (libsCatalog.isEmpty()) {
-      throw reportError(
-          "conventions-libs-catalog-missing",
-          "Expected to see a version catalog named 'libs' declared in the root project.");
-    }
-
-    var libsCatalogConfig = ext.getVersionCatalogs().create("libs");
+    var libsCatalogConfig = ext.getVersionCatalogs().create(libsCatalog.getName());
     libsCatalogConfig
         .getCatalogFile()
         .set(project.getLayout().getProjectDirectory().file("versions.toml").getAsFile());

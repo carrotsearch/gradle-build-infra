@@ -1,9 +1,12 @@
 package com.carrotsearch.gradle.buildinfra;
 
+import java.util.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.VersionCatalog;
+import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
@@ -47,5 +50,20 @@ public abstract class AbstractPlugin implements Plugin<Project> {
             action.execute(problemSpec);
           }
         });
+  }
+
+  protected VersionCatalog getLibsCatalog(Project project) {
+    VersionCatalogsExtension ext =
+        project.getRootProject().getExtensions().findByType(VersionCatalogsExtension.class);
+
+    Optional<VersionCatalog> libsCatalog;
+    if (ext == null || (libsCatalog = ext.find("libs")).isEmpty()) {
+      throw reportError(
+          "conventions-libs-catalog-missing",
+          "Expected to see a version catalog named 'libs' declared in project: "
+              + project.getPath());
+    }
+
+    return libsCatalog.get();
   }
 }

@@ -208,3 +208,12 @@ testRuntimeClasspath
 
 This plugin only tracks dependency versions and detects their inconsistencies: any resolution
 of inconsistencies should be done using Gradle's built-in infrastructure. 
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplySaneJavaDefaultsPlugin```
+--
+
+This plugin does the following:
+* configures all ```JavaCompile``` and ```Javadoc``` tasks to use UTF-8.
+* reads ```minJava``` version string from the ```libs``` version catalog and
+  sets the ```sourceCompatibility```, ```targetCompatibility``` and toolchain's
+  version to this string.
