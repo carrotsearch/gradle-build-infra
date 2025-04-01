@@ -52,12 +52,6 @@ tasks.withType(Javadoc).configureEach {
   it.options.addBooleanOption("Xdoclint:none", true)
 }
 
-java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(libs.versions.minJava.get())
-  }
-}
-
 tasks.register("sourcesJar", Jar, {
   dependsOn classes
   archiveClassifier = 'sources'
