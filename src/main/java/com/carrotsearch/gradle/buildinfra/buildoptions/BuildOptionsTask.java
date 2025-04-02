@@ -27,7 +27,10 @@ public abstract class BuildOptionsTask extends DefaultTask {
   protected abstract StyledTextOutputFactory getOutputFactory();
 
   @Input
-  public abstract NamedDomainObjectContainer<BuildOption> getAllBuildOptions();
+  public NamedDomainObjectContainer<BuildOption> getAllBuildOptions() {
+    var optsExtension = getProject().getExtensions().getByType(BuildOptionsExtension.class);
+    return optsExtension.getAllOptions();
+  }
 
   @Inject
   public BuildOptionsTask(Project project) {
@@ -35,9 +38,6 @@ public abstract class BuildOptionsTask extends DefaultTask {
     setGroup(BUILD_OPTIONS_TASK_GROUP);
     this.projectName =
         (project == project.getRootProject() ? ": (the root project)" : project.getPath());
-
-    var optsExtension = project.getExtensions().getByType(BuildOptionsExtension.class);
-    this.getAllBuildOptions().addAll(optsExtension.getAllOptions());
   }
 
   @TaskAction
