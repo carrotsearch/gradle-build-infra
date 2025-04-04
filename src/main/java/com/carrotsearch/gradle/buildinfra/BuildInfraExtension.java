@@ -1,7 +1,6 @@
 package com.carrotsearch.gradle.buildinfra;
 
 import javax.inject.Inject;
-
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.provider.Property;
 import org.gradle.process.ExecOperations;
