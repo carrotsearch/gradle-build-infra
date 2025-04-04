@@ -1,6 +1,6 @@
 [versions]
 # @keep
-projectVersion = "0.0.7-SNAPSHOT"
+projectVersion = "0.0.7"
 projectVersionSelfApply = "0.0.6"
 minJava = "21"
 googleJavaFormat = "1.25.2"

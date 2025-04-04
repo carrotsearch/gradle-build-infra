@@ -1,6 +1,8 @@
 package com.carrotsearch.gradle.buildinfra;
 
 import javax.inject.Inject;
+
+import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.provider.Property;
 import org.gradle.process.ExecOperations;
 
@@ -17,4 +19,10 @@ public abstract class BuildInfraExtension {
    */
   @Inject
   public abstract ExecOperations getExecOps();
+
+  /**
+   * @return Returns the {@code BuildFeatures} at configuration time.
+   */
+  @Inject
+  public abstract BuildFeatures getBuildFeatures();
 }
