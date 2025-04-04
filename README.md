@@ -18,6 +18,9 @@ Applies all sub-plugins and exposes the following extension on the root project:
 buildinfra {
     // true, if the build runs within IntellIJ Idea environment.
     Property<Boolean> intelliJIdea;
+
+    // access to ExecOperations for tasks that need it during execution phase.
+    ExecOperations execOps;
 }
 ```
 
