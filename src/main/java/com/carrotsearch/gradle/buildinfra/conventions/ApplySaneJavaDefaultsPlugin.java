@@ -60,9 +60,5 @@ public class ApplySaneJavaDefaultsPlugin extends AbstractPlugin {
     var javaExt = project.getExtensions().getByType(JavaPluginExtension.class);
     javaExt.setSourceCompatibility(minJavaVersion);
     javaExt.setTargetCompatibility(minJavaVersion);
-    javaExt
-        .getToolchain()
-        .getLanguageVersion()
-        .set(JavaLanguageVersion.of(minJava.get().toString()));
   }
 }
