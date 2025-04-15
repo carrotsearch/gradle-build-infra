@@ -9,7 +9,6 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 public class ApplySaneJavaDefaultsPlugin extends AbstractPlugin {
 
