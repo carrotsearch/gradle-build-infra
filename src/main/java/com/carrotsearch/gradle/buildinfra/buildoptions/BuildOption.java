@@ -42,4 +42,8 @@ public abstract class BuildOption implements Named {
               }
             });
   }
+
+  public final boolean isPresent() {
+    return getValue().isPresent();
+  }
 }

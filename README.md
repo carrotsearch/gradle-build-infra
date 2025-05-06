@@ -48,13 +48,13 @@ with the following defaults:
 Plugin: ```com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin```
 --
 
-Adds the infrastructure for "build options". Build options are named gradle Property<String>
-values, with values sourced dynamically from (in order):
+Adds the infrastructure for "build options". Build options are key-value pairs 
+(gradle Property<BuildOptionValue> types), with values sourced dynamically from (in order):
 * system property (-Dfoo=value),
 * gradle property (-Pfoo=value),
 * environment variable (foo=value ./gradlew ...)
+* a local, typically *not versioned*, root-project relative, ```.options.local.properties``` property file,
 * a versioned root project-relative ```.options.properties"``` property file.
-* a local, typically *not versioned*, root-project relative, ```.options.local.properties``` property file.
 
 Typical usage in a build file:
 ```groovy
@@ -65,20 +65,20 @@ buildOptions {
 // or:
 BuildOption bazOption = buildOptions.addOption("baz", "Option baz.")
 
-// get a provider for the option's value
+// gets an immediate value provider for the option's value
 {
     Provider<String> bar = buildOptions["bar"]
     Provider<String> foo = buildOptions["foo"]
 }
 
-// check if the option's value is present or not.
+// check if the option is present or not.
 {
     Property<BuildOptionValue> foo = buildOptions.getOption("foo").getValue()
     if (foo.isPresent()) {
         String val = foo.get().toString()
     }
     // or directly, if BuildOption is available.
-    if (bazOption.getValue().isPresent()) {
+    if (bazOption.isPresent()) {
         String val = bazOption.getValue().get().toString()
     }
 }
