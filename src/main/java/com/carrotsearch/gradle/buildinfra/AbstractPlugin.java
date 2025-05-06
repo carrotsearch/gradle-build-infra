@@ -7,6 +7,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
@@ -40,9 +42,11 @@ public abstract class AbstractPlugin implements Plugin<Project> {
 
   protected RuntimeException reportError(String id, String label, Action<ProblemSpec> action) {
     throw problemReporter.throwing(
+        new GradleException(),
+        ProblemId.create(
+            id, label, ProblemGroup.create("buildinfra", "Build infrastructure problems")),
         problemSpec -> {
           problemSpec
-              .id(id, label)
               .contextualLabel(label)
               .severity(Severity.ERROR)
               .withException(new GradleException());
