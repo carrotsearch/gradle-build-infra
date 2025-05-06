@@ -9,7 +9,7 @@ spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.0.2"
 forbiddenapis-plugin = "de.thetaphi:forbiddenapis:3.8"
 benmanes-versions-plugin = "com.github.ben-manes:gradle-versions-plugin:0.51.0"
 version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:0.8.5"
-jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.17.1"
+jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.19.0"
 carrotsearch-procfork = "com.carrotsearch:procfork:1.0.6"
 
 [plugins]
