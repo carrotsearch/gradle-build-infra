@@ -222,7 +222,7 @@ if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
 fi
 
 GRADLE_WRAPPER_JAR="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
-if ! ( cd $APP_HOME/gradle/wrapper && sha256sum --status -c ${GRADLE_WRAPPER_JAR}.sha256 ); then
+if ! ( cd "$APP_HOME/gradle/wrapper" && sha256sum --status -c "${GRADLE_WRAPPER_JAR}.sha256" ); then
     echo "Error: gradle-wrapper.jar checksum mismatch or missing."
     exit 1
 fi
