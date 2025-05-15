@@ -53,8 +53,8 @@ Adds the infrastructure for "build options". Build options are key-value pairs
 * system property (-Dfoo=value),
 * gradle property (-Pfoo=value),
 * environment variable (foo=value ./gradlew ...)
-* a local, typically *not versioned*, root-project relative, ```.options.local.properties``` property file,
-* a versioned root project-relative ```.options.properties"``` property file.
+* a local, typically *not versioned*, root-project relative, ```build-options.local.properties``` property file,
+* a versioned root project-relative ```build-options.properties"``` property file.
 
 Typical usage in a build file:
 ```groovy
