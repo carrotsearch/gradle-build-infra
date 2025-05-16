@@ -150,19 +150,13 @@ public abstract class BuildOptionsTask extends DefaultTask {
     out.format(keyFmt, opt.getName());
     out.withStyle(valueStyle).format("%-8s", value.isPresent() ? value.get() : "[empty]");
     out.withStyle(comment).append(" # ");
-    if (valueSource != null || opt.getType() != BuildOptionType.STRING) {
-      StringBuilder sb = new StringBuilder();
-      if (opt.getType() != BuildOptionType.STRING) {
-        sb.append("type: ").append(opt.getType().toString().toLowerCase(Locale.ROOT));
-      }
-      if (valueSource != null) {
-        if (!sb.isEmpty()) sb.append(", ");
-        sb.append("source: ").append(valueSource);
-      }
-
-      out.withStyle(valueStyle).append("(").append(String.valueOf(sb)).append(") ");
+    if (valueSource != null) {
+      out.withStyle(valueStyle).append("(source: ").append(valueSource).append(") ");
     }
     out.withStyle(comment).append(opt.getDescription());
+    if (opt.getType() != BuildOptionType.STRING) {
+      out.append(" (type: ").append(opt.getType().toString().toLowerCase(Locale.ROOT)).append(")");
+    }
     out.append("\n");
   }
 

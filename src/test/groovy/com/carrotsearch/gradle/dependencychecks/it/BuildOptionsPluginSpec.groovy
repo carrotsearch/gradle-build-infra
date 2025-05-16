@@ -77,12 +77,12 @@ class BuildOptionsPluginSpec extends AbstractIntegTest {
         a01 = default-value-a01 # a01 description
         a02 = [empty]  # a02 description
         a03 = default-value-a03 # (source: computed value) a03 description
-        a04 = true # (type: boolean) a04 description
-        a05 = [empty]  # (type: boolean) a05 description
-        a06 = false # (type: boolean, source: computed value) a06 description
-        a07 = 13 # (type: integer) a07 description
-        a08 = [empty]  # (type: integer) a08 description
-        a09 = 14 # (type: integer, source: computed value) a09 description
+        a04 = true # a04 description (type: boolean)
+        a05 = [empty]  # a05 description (type: boolean)
+        a06 = false # (source: computed value) a06 description (type: boolean)
+        a07 = 13 # a07 description (type: integer)
+        a08 = [empty]  # a08 description (type: integer)
+        a09 = 14 # (source: computed value) a09 description (type: integer)
         """)
         result.task(":buildOptions").outcome == TaskOutcome.SUCCESS
     }
