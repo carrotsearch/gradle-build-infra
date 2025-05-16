@@ -1,5 +1,6 @@
 plugins {
   id "java-gradle-plugin"
+  id "groovy"
   id 'signing'
   id 'maven-publish'
   alias(libs.plugins.pluginpublish)
@@ -26,6 +27,14 @@ dependencies {
   implementation(libs.version.catalog.update.plugin)
   implementation(libs.jackson.databind)
   implementation(libs.carrotsearch.procfork)
+
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+  testImplementation libs.assertj
+
+  testImplementation platform(libs.spockframework.get())
+  testImplementation "org.spockframework:spock-core"
 }
 
 gradlePlugin {
@@ -63,6 +72,11 @@ tasks.register("javadocJar", Jar, {
   archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 })
+
+tasks.withType(Test).configureEach {
+  useJUnitPlatform()
+  systemProperty("tests.gradle.version", gradle.gradleVersion)
+}
 
 tasks.matching { it.name == "publishAllPublicationsToSonatypeRepository" }.configureEach {
   doFirst {
