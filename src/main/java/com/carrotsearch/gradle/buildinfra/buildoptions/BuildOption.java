@@ -7,6 +7,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -86,6 +87,15 @@ public abstract class BuildOption implements Named {
             });
   }
 
+  public Provider<RegularFile> asFileProvider() {
+    ensureType(BuildOptionType.FILE, EnumSet.of(BuildOptionType.FILE, BuildOptionType.STRING));
+    return asStringProvider()
+        .map(
+            value -> {
+              return project.getLayout().getProjectDirectory().file(value);
+            });
+  }
+
   private void ensureType(BuildOptionType target, EnumSet<BuildOptionType> expected) {
     if (!expected.contains(getType())) {
       throw new GradleException(
@@ -118,5 +128,17 @@ public abstract class BuildOption implements Named {
       throw new GradleException("This build option has no value set: " + getName());
     }
     return getValue().get().source();
+  }
+
+  String relativePath(Directory value) {
+    var projectPath = project.getLayout().getProjectDirectory().getAsFile().toPath();
+    var valuePath = value.getAsFile().toPath();
+    return projectPath.relativize(valuePath).toString();
+  }
+
+  public String relativePath(RegularFile value) {
+    var projectPath = project.getLayout().getProjectDirectory().getAsFile().toPath();
+    var valuePath = value.getAsFile().toPath();
+    return projectPath.relativize(valuePath).toString();
   }
 }

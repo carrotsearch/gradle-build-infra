@@ -3,6 +3,7 @@ package com.carrotsearch.gradle.buildinfra.buildoptions;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
 public abstract class BuildOptionsExtension {
@@ -182,5 +183,82 @@ public abstract class BuildOptionsExtension {
   /** Build option without any default value. */
   public Provider<Directory> addDirOption(String name, String description) {
     return newDirOption(name, description, opt -> {});
+  }
+
+  /** Build option with the default value. */
+  public Provider<Directory> addDirOption(String name, String description, Directory defaultValue) {
+    return newDirOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  new BuildOptionValue(
+                      opt.relativePath(defaultValue), BuildOptionValueSource.EXPLICIT_VALUE));
+        });
+  }
+
+  /** Build option with some dynamically computed value. */
+  public Provider<Directory> addDirOption(
+      String name, String description, Provider<Directory> defaultValueProvider) {
+    return newDirOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  defaultValueProvider.map(
+                      value ->
+                          new BuildOptionValue(
+                              opt.relativePath(value), BuildOptionValueSource.COMPUTED_VALUE)));
+        });
+  }
+
+  private Provider<RegularFile> newFileOption(
+      String name, String description, Action<BuildOption> spec) {
+    return getAllOptions()
+        .create(
+            name,
+            opt -> {
+              opt.setDescription(description);
+              opt.setType(BuildOptionType.FILE);
+              spec.execute(opt);
+            })
+        .asFileProvider();
+  }
+
+  /** Build option without any default value. */
+  public Provider<RegularFile> addFileOption(String name, String description) {
+    return newFileOption(name, description, opt -> {});
+  }
+
+  /** Build option with the default value. */
+  public Provider<RegularFile> addFileOption(
+      String name, String description, RegularFile defaultValue) {
+    return newFileOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  new BuildOptionValue(
+                      opt.relativePath(defaultValue), BuildOptionValueSource.EXPLICIT_VALUE));
+        });
+  }
+
+  /** Build option with some dynamically computed value. */
+  public Provider<RegularFile> addFileOption(
+      String name, String description, Provider<RegularFile> defaultValueProvider) {
+    return newFileOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  defaultValueProvider.map(
+                      value ->
+                          new BuildOptionValue(
+                              opt.relativePath(value), BuildOptionValueSource.COMPUTED_VALUE)));
+        });
   }
 }

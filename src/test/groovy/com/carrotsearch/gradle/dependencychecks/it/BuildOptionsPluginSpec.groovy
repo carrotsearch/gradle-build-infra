@@ -54,6 +54,10 @@ class BuildOptionsPluginSpec extends AbstractIntegTest {
         def stringValueProv = project.providers.provider { 'default-value-a03' }
         def boolValueProv = project.providers.provider { false }
         def intValueProv = project.providers.provider { 14 }
+        def dirValue = project.layout.buildDirectory.dir("a11").get()
+        def dirValueProv = project.layout.buildDirectory.dir("a12")
+        def fileValue = project.layout.buildDirectory.file("a14").get()
+        def fileValueProv = project.layout.buildDirectory.file("a15")
         buildOptions {
             addOption("a01", "a01 description", "default-value-a01")
             addOption("a02", "a02 description")
@@ -64,6 +68,12 @@ class BuildOptionsPluginSpec extends AbstractIntegTest {
             addIntOption("a07", "a07 description", 13)
             addIntOption("a08", "a08 description")
             addIntOption("a09", "a09 description", intValueProv)
+            addDirOption("a10", "a10 description")
+            addDirOption("a11", "a11 description", dirValue)
+            addDirOption("a12", "a12 description", dirValueProv)
+            addFileOption("a13", "a13 description")
+            addFileOption("a14", "a14 description", fileValue)
+            addFileOption("a15", "a15 description", fileValueProv)
         }
         """)
 
@@ -83,6 +93,12 @@ class BuildOptionsPluginSpec extends AbstractIntegTest {
         a07 = 13 # a07 description (type: integer)
         a08 = [empty]  # a08 description (type: integer)
         a09 = 14 # (source: computed value) a09 description (type: integer)
+        a10 = [empty] # a10 description (type: directory)
+        a11 = build/a11 # a11 description (type: directory)
+        a12 = build/a12 # (source: computed value) a12 description (type: directory)
+        a13 = [empty] # a13 description (type: file)
+        a14 = build/a14 # a14 description (type: file)
+        a15 = build/a15 # (source: computed value) a15 description (type: file)
         """)
         result.task(":buildOptions").outcome == TaskOutcome.SUCCESS
     }

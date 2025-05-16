@@ -4,5 +4,6 @@ public enum BuildOptionType {
   STRING,
   BOOLEAN,
   INTEGER,
-  DIRECTORY
+  DIRECTORY,
+  FILE
 }
