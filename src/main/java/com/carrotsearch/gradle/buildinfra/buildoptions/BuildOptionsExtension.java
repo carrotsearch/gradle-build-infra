@@ -2,6 +2,7 @@ package com.carrotsearch.gradle.buildinfra.buildoptions;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 
 public abstract class BuildOptionsExtension {
@@ -163,5 +164,23 @@ public abstract class BuildOptionsExtension {
   /** Build option without any default value. */
   public Provider<Integer> addIntOption(String name, String description) {
     return newIntOption(name, description, opt -> {});
+  }
+
+  private Provider<Directory> newDirOption(
+      String name, String description, Action<BuildOption> spec) {
+    return getAllOptions()
+        .create(
+            name,
+            opt -> {
+              opt.setDescription(description);
+              opt.setType(BuildOptionType.DIRECTORY);
+              spec.execute(opt);
+            })
+        .asDirProvider();
+  }
+
+  /** Build option without any default value. */
+  public Provider<Directory> addDirOption(String name, String description) {
+    return newDirOption(name, description, opt -> {});
   }
 }

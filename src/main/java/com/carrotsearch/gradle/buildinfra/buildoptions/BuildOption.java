@@ -2,12 +2,17 @@ package com.carrotsearch.gradle.buildinfra.buildoptions;
 
 import java.util.EnumSet;
 import java.util.Locale;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
+import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
 public abstract class BuildOption implements Named {
+  private final Project project;
+
   public abstract BuildOptionType getType();
 
   abstract void setType(BuildOptionType type);
@@ -22,6 +27,11 @@ public abstract class BuildOption implements Named {
 
   public final Provider<String> asStringProvider() {
     return getValue().map(BuildOptionValue::value);
+  }
+
+  @Inject
+  public BuildOption(Project project) {
+    this.project = project;
   }
 
   public Provider<Boolean> asBooleanProvider() {
@@ -63,6 +73,16 @@ public abstract class BuildOption implements Named {
                         "an integer value",
                         value));
               }
+            });
+  }
+
+  public Provider<Directory> asDirProvider() {
+    ensureType(
+        BuildOptionType.DIRECTORY, EnumSet.of(BuildOptionType.DIRECTORY, BuildOptionType.STRING));
+    return asStringProvider()
+        .map(
+            value -> {
+              return project.getLayout().getProjectDirectory().dir(value);
             });
   }
 
