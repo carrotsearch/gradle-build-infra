@@ -109,7 +109,16 @@ public class BuildOptionsPlugin extends AbstractPlugin {
                           .orElse(option.getDefaultValue()));
             });
 
-    project.getTasks().register(BuildOptionsTask.NAME, BuildOptionsTask.class);
+    // Add buildOptions and aliases.
+    var buildOptionsTask =
+        project.getTasks().register(BuildOptionsTask.NAME, BuildOptionsTask.class);
+    project
+        .getTasks()
+        .register(
+            "showOptions",
+            t -> {
+              t.dependsOn(buildOptionsTask);
+            });
   }
 
   private static @NotNull Provider<BuildOptionValue> fromLocalFile(

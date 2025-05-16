@@ -86,4 +86,49 @@ class BuildOptionsPluginSpec extends AbstractIntegTest {
         """)
         result.task(":buildOptions").outcome == TaskOutcome.SUCCESS
     }
+
+    def "allows buildOptions task to be configured to group build options"() {
+        given:
+        buildFile(
+                """
+        plugins {
+          id('com.carrotsearch.gradle.buildinfra') apply false
+        }
+        apply plugin: com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin
+
+        buildOptions {
+            addOption("a01", "a01 description")
+            addOption("a02", "a02 description")
+            addOption("a03", "a03 description")
+            addOption("a04", "a04 description")
+        }
+        
+        tasks.matching { it.name == "buildOptions" }.configureEach {
+          optionGroups {
+            group("Options a01 and a03:", "(a0[1|3].*)")
+            group("Options a04:", "(a04)")
+            allOtherOptions("Other options:")
+          }
+        }
+        """)
+
+        when:
+        def result = gradleRunner()
+                .withArguments("buildOptions")
+                .run()
+
+        then:
+        containsLines(result.output, """
+        Options a01 and a03:
+        a01 = [empty]  # a01 description
+        a03 = [empty]  # a03 description
+       
+        Options a04:
+        a04 = [empty]  # a04 description
+        
+        Other options:
+        a02 = [empty]  # a02 description
+        """)
+        result.task(":buildOptions").outcome == TaskOutcome.SUCCESS
+    }
 }
