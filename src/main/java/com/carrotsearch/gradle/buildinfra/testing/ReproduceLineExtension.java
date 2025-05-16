@@ -38,13 +38,13 @@ public class ReproduceLineExtension {
   }
 
   public void addBuildOption(BuildOption buildOption) {
-    if (!buildOption.getValue().isPresent()) {
+    if (!buildOption.isPresent()) {
       return;
     }
 
-    var opt = buildOption.getValue().get();
-    if (!opt.defaultValue() || opt.source() == BuildOptionValueSource.COMPUTED_VALUE) {
-      addGradleProperty(buildOption.getName(), opt.value());
+    if (!buildOption.isEqualToDefaultValue()
+        || buildOption.getSource() == BuildOptionValueSource.COMPUTED_VALUE) {
+      addGradleProperty(buildOption.getName(), buildOption.asStringProvider().get());
     }
   }
 }

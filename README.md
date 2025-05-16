@@ -49,7 +49,7 @@ Plugin: ```com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin```
 --
 
 Adds the infrastructure for "build options". Build options are key-value pairs 
-(gradle Property<BuildOptionValue> types), with values sourced dynamically from (in order):
+(gradle Provider<String> types), with values sourced dynamically from (in order):
 * system property (-Dfoo=value),
 * gradle property (-Pfoo=value),
 * environment variable (foo=value ./gradlew ...)
@@ -59,28 +59,22 @@ Adds the infrastructure for "build options". Build options are key-value pairs
 Typical usage in a build file:
 ```groovy
 buildOptions {
-  addOption("foo", "Option foo, no default value.")
-  addOption("bar", "Option bar, with default value.", "baz")
+  addOption("foo", "String option foo, no default value.")
+  addOption("bar", "String option bar, with default value.", "baz")
 }
 // or:
-BuildOption bazOption = buildOptions.addOption("baz", "Option baz.")
+Provider<String> bazOption = buildOptions.addOption("baz", "Option baz.")
 
-// gets an immediate value provider for the option's value
+// retrieves value provider for the option's value.
 {
-    Provider<String> bar = buildOptions["bar"]
-    Provider<String> foo = buildOptions["foo"]
+  Provider<String> bar = buildOptions["bar"]
+  Provider<String> foo = buildOptions["foo"]
 }
 
-// check if the option is present or not.
+// non-string options are also possible.
 {
-    Property<BuildOptionValue> foo = buildOptions.getOption("foo").getValue()
-    if (foo.isPresent()) {
-        String val = foo.get().toString()
-    }
-    // or directly, if BuildOption is available.
-    if (bazOption.isPresent()) {
-        String val = bazOption.getValue().get().toString()
-    }
+  Provider<Boolean> boolOpt = buildOptions.addBooleanOption("boolOpt", "Boolean option.", true)
+  Provider<Integer> intOpt = buildOptions.addIntOption("intOpt", "integer option.", 42)
 }
 ```
 

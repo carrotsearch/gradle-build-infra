@@ -55,7 +55,7 @@ public class ApplyForbiddenApisPlugin extends AbstractPlugin {
         project
             .getObjects()
             .fileProperty()
-            .convention(projectDirectory.file(forbiddenApisDirOption.asStringProvider()));
+            .convention(projectDirectory.file(forbiddenApisDirOption));
 
     project
         .getPlugins()

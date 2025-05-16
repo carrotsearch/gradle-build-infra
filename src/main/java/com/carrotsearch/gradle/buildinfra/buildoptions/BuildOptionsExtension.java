@@ -1,5 +1,6 @@
 package com.carrotsearch.gradle.buildinfra.buildoptions;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.provider.Provider;
 
@@ -27,39 +28,140 @@ public abstract class BuildOptionsExtension {
     return optionValue(name);
   }
 
-  /** Build option with the default value. */
-  public BuildOption addOption(String name, String description, String defaultValue) {
+  private Provider<String> newStringOption(
+      String name, String description, Action<BuildOption> spec) {
     return getAllOptions()
         .create(
             name,
             opt -> {
               opt.setDescription(description);
-              opt.getDefaultValue()
-                  .set(
-                      new BuildOptionValue(
-                          defaultValue, true, BuildOptionValueSource.EXPLICIT_VALUE));
-            });
+              opt.setType(BuildOptionType.STRING);
+              spec.execute(opt);
+            })
+        .asStringProvider();
+  }
+
+  /** Build option with the default value. */
+  public Provider<String> addOption(String name, String description, String defaultValue) {
+    return newStringOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(new BuildOptionValue(defaultValue, BuildOptionValueSource.EXPLICIT_VALUE));
+        });
   }
 
   /** Build option with some dynamically computed value. */
-  public BuildOption addOption(
+  public Provider<String> addOption(
       String name, String description, Provider<String> defaultValueProvider) {
+    return newStringOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  defaultValueProvider.map(
+                      value -> new BuildOptionValue(value, BuildOptionValueSource.COMPUTED_VALUE)));
+        });
+  }
+
+  /** Build option without any default value. */
+  public Provider<String> addOption(String name, String description) {
+    return newStringOption(name, description, opt -> {});
+  }
+
+  private Provider<Boolean> newBooleanOption(
+      String name, String description, Action<BuildOption> spec) {
     return getAllOptions()
         .create(
             name,
             opt -> {
               opt.setDescription(description);
-              opt.getDefaultValue()
-                  .set(
-                      defaultValueProvider.map(
-                          value ->
-                              new BuildOptionValue(
-                                  value, true, BuildOptionValueSource.COMPUTED_VALUE)));
-            });
+              opt.setType(BuildOptionType.BOOLEAN);
+              spec.execute(opt);
+            })
+        .asBooleanProvider();
+  }
+
+  /** Build option with the default value. */
+  public Provider<Boolean> addBooleanOption(String name, String description, boolean defaultValue) {
+    return newBooleanOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  new BuildOptionValue(
+                      Boolean.toString(defaultValue), BuildOptionValueSource.EXPLICIT_VALUE));
+        });
+  }
+
+  /** Build option with some dynamically computed value. */
+  public Provider<Boolean> addBooleanOption(
+      String name, String description, Provider<Boolean> defaultValueProvider) {
+    return newBooleanOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  defaultValueProvider.map(
+                      value ->
+                          new BuildOptionValue(
+                              Boolean.toString(value), BuildOptionValueSource.COMPUTED_VALUE)));
+        });
   }
 
   /** Build option without any default value. */
-  public BuildOption addOption(String name, String description) {
-    return getAllOptions().create(name, opt -> opt.setDescription(description));
+  public Provider<Boolean> addBooleanOption(String name, String description) {
+    return newBooleanOption(name, description, opt -> {});
+  }
+
+  private Provider<Integer> newIntOption(
+      String name, String description, Action<BuildOption> spec) {
+    return getAllOptions()
+        .create(
+            name,
+            opt -> {
+              opt.setDescription(description);
+              opt.setType(BuildOptionType.INTEGER);
+              spec.execute(opt);
+            })
+        .asIntProvider();
+  }
+
+  /** Build option with the default value. */
+  public Provider<Integer> addIntOption(String name, String description, int defaultValue) {
+    return newIntOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  new BuildOptionValue(
+                      Integer.toString(defaultValue), BuildOptionValueSource.EXPLICIT_VALUE));
+        });
+  }
+
+  /** Build option with some dynamically computed value. */
+  public Provider<Integer> addIntOption(
+      String name, String description, Provider<Integer> defaultValueProvider) {
+    return newIntOption(
+        name,
+        description,
+        opt -> {
+          opt.getDefaultValue()
+              .set(
+                  defaultValueProvider.map(
+                      value ->
+                          new BuildOptionValue(
+                              Integer.toString(value), BuildOptionValueSource.COMPUTED_VALUE)));
+        });
+  }
+
+  /** Build option without any default value. */
+  public Provider<Integer> addIntOption(String name, String description) {
+    return newIntOption(name, description, opt -> {});
   }
 }

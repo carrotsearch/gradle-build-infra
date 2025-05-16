@@ -77,26 +77,21 @@ public class BuildOptionsPlugin extends AbstractPlugin {
                   .convention(
                       providers
                           .systemProperty(optionName)
-                          .map(
-                              v ->
-                                  new BuildOptionValue(
-                                      v, false, BuildOptionValueSource.SYSTEM_PROPERTY))
+                          .map(v -> new BuildOptionValue(v, BuildOptionValueSource.SYSTEM_PROPERTY))
                           .orElse(
                               providers
                                   .gradleProperty(optionName)
                                   .map(
                                       v ->
                                           new BuildOptionValue(
-                                              v, false, BuildOptionValueSource.GRADLE_PROPERTY)))
+                                              v, BuildOptionValueSource.GRADLE_PROPERTY)))
                           .orElse(
                               providers
                                   .environmentVariable(optionName)
                                   .map(
                                       v ->
                                           new BuildOptionValue(
-                                              v,
-                                              false,
-                                              BuildOptionValueSource.ENVIRONMENT_VARIABLE)))
+                                              v, BuildOptionValueSource.ENVIRONMENT_VARIABLE)))
                           .orElse(
                               fromLocalFile(
                                   providers,
@@ -134,7 +129,7 @@ public class BuildOptionsPlugin extends AbstractPlugin {
                 params.getValue().set(localOptions.get(optionName));
               }
             })
-        .map(v -> new BuildOptionValue(v, false, source));
+        .map(v -> new BuildOptionValue(v, source));
   }
 
   private static @NotNull Map<String, String> readBuildOptions(

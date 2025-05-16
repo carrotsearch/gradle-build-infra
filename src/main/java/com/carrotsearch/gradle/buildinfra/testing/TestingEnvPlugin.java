@@ -1,6 +1,7 @@
 package com.carrotsearch.gradle.buildinfra.testing;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
+import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOption;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin;
 import java.io.IOException;
@@ -179,7 +180,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                     () -> String.format(Locale.ROOT, "%08X", new Random().nextLong())));
 
     Property<String> rootSeed = ext.getRootSeed();
-    rootSeed.set(rootSeedOption.asStringProvider());
+    rootSeed.set(rootSeedOption);
     rootSeed.finalizeValueOnRead();
 
     project
@@ -318,24 +319,16 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
       TaskCollection<Test> testTasks,
       String printSeedTaskName) {
 
-    var stackFilteringOption =
-        buildOptions.addOption(
-            "tests.stackfiltering",
-            "Removes internal JDK and randomizedtesting stack frames from stack dumps.",
-            "true");
-    var itersOption =
-        buildOptions.addOption(
-            "tests.iters", "Repeats randomized tests the provided number of times.");
-    var filterOption =
-        buildOptions.addOption(
-            "tests.filter", "Apply test group filtering using Boolean expressions.");
-    var timeoutOption = buildOptions.addOption("tests.timeout", "Test timeout (in millis).");
-    var timeoutSuiteOption =
-        buildOptions.addOption("tests.timeoutSuite", "Test suite timeout (in millis).");
-    var assertsOption =
-        buildOptions.addOption(
-            "tests.asserts",
-            "The desired assertions status for RequireAssertionsRule (true/false).");
+    buildOptions.addBooleanOption(
+        "tests.stackfiltering",
+        "Removes internal JDK and randomizedtesting stack frames from stack dumps.",
+        true);
+    buildOptions.addOption("tests.iters", "Repeats randomized tests the provided number of times.");
+    buildOptions.addOption("tests.filter", "Apply test group filtering using Boolean expressions.");
+    buildOptions.addOption("tests.timeout", "Test timeout (in millis).");
+    buildOptions.addOption("tests.timeoutSuite", "Test suite timeout (in millis).");
+    buildOptions.addBooleanOption(
+        "tests.asserts", "The desired assertions status for RequireAssertionsRule.");
 
     var ext = project.getRootProject().getExtensions().getByType(RootTestingProjectExtension.class);
     var rootSeed = ext.getRootSeed();
@@ -354,15 +347,16 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
               task.getExtensions().getByType(ReproduceLineExtension.class);
           reproLineExtension.addGradleProperty("tests.seed", rootSeed.get());
 
-          for (var opt :
+          for (var optKey :
               List.of(
-                  assertsOption,
-                  itersOption,
-                  filterOption,
-                  timeoutOption,
-                  timeoutSuiteOption,
-                  stackFilteringOption)) {
-            if (opt.getValue().isPresent()) {
+                  "tests.asserts",
+                  "tests.timeoutSuite",
+                  "tests.filter",
+                  "tests.timeout",
+                  "tests.timeoutSuite",
+                  "tests.filter")) {
+            BuildOption opt = buildOptions.getOption(optKey);
+            if (opt.isPresent()) {
               String optName = opt.getName();
               String value = opt.asStringProvider().get();
               task.systemProperty(optName, value);
@@ -376,7 +370,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
   private void configureTestTaskOptions(
       Project project, BuildOptionsExtension buildOptions, TaskCollection<Test> testTasks) {
 
-    var rerunOption = buildOptions.addOption("tests.rerun", "Force Test task re-run.");
+    var rerunOption = buildOptions.addBooleanOption("tests.rerun", "Force Test task re-run.");
     var jvmArgsOption =
         buildOptions.addOption(
             "tests.jvmargs",
@@ -384,14 +378,14 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
     var minHeapOption = buildOptions.addOption("tests.minheap", "Minimum heap size for test JVMs.");
     var maxHeapOption = buildOptions.addOption("tests.maxheap", "Maximum heap size for test JVMs.");
     var jvmsOption =
-        buildOptions.addOption(
+        buildOptions.addIntOption(
             "tests.jvms",
             "The number of forked test JVMs.",
-            project.getProviders().provider(() -> Integer.toString(defaultTestJvms())));
+            project.getProviders().provider(() -> defaultTestJvms()));
 
     var verboseOption =
-        buildOptions.addOption(
-            "tests.verbose", "Echo all stdout/stderr from tests to gradle console.", "false");
+        buildOptions.addBooleanOption(
+            "tests.verbose", "Echo all stdout/stderr from tests to gradle console.", false);
 
     var cwdDirOption =
         buildOptions.addOption(
@@ -414,7 +408,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           // do not fail immediately.
           task.getFilter().setFailOnNoMatchingTests(false);
 
-          Provider<Directory> cwdDir = projectDir.dir(cwdDirOption.asStringProvider());
+          Provider<Directory> cwdDir = projectDir.dir(cwdDirOption);
           task.setWorkingDir(cwdDir);
           task.doFirst(
               t -> {
@@ -425,7 +419,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                 }
               });
 
-          Provider<Directory> tmpDir = projectDir.dir(tmpDirOption.asStringProvider());
+          Provider<Directory> tmpDir = projectDir.dir(tmpDirOption);
           task.systemProperty("java.io.tmpdir", tmpDir.get().getAsFile().getAbsolutePath());
           task.doFirst(
               t -> {
@@ -436,7 +430,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                 }
               });
 
-          if (rerunOption.getValue().isPresent() && rerunOption.asBooleanProvider().get()) {
+          if (rerunOption.isPresent() && rerunOption.get()) {
             task.getOutputs()
                 .upToDateWhen(
                     t -> {
@@ -444,8 +438,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                     });
           }
 
-          if (jvmArgsOption.getValue().isPresent()) {
-            String jvmArgs = jvmArgsOption.getValue().get().value();
+          if (jvmArgsOption.isPresent()) {
+            String jvmArgs = jvmArgsOption.get();
             reproLineExtension.addGradleProperty("tests.jvmargs", jvmArgs);
 
             task.getJvmArgumentProviders()
@@ -453,25 +447,23 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                     new CommandLineArgumentProvider() {
                       @Override
                       public Iterable<String> asArguments() {
-                        return Arrays.asList(
-                            Commandline.translateCommandline(
-                                jvmArgsOption.asStringProvider().get()));
+                        return Arrays.asList(Commandline.translateCommandline(jvmArgs));
                       }
                     });
           }
 
-          if (minHeapOption.getValue().isPresent()) {
-            task.setMinHeapSize(minHeapOption.asStringProvider().get());
+          if (minHeapOption.isPresent()) {
+            task.setMinHeapSize(minHeapOption.get());
           }
-          if (maxHeapOption.getValue().isPresent()) {
-            task.setMaxHeapSize(maxHeapOption.asStringProvider().get());
+          if (maxHeapOption.isPresent()) {
+            task.setMaxHeapSize(maxHeapOption.get());
           }
 
-          boolean verboseMode = verboseOption.asBooleanProvider().get();
+          boolean verboseMode = verboseOption.get();
 
           // set the maximum number of parallel forks.
-          if (verboseMode || jvmsOption.getValue().isPresent()) {
-            int forks = jvmsOption.asIntProvider().getOrElse(1);
+          if (verboseMode || jvmsOption.isPresent()) {
+            int forks = jvmsOption.getOrElse(1);
             if (verboseMode && forks > 1) {
               task.getLogger().info("${task.path}.maxParallelForks forced to 1 in verbose mode.");
               forks = 1;
@@ -573,9 +565,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
   private static void configureHtmlReportsOption(
       BuildOptionsExtension buildOptions, TaskCollection<Test> testTasks) {
     var htmlReportsOption =
-        buildOptions
-            .addOption("tests.htmlReports", "Enable HTML report generation.", "false")
-            .asBooleanProvider();
+        buildOptions.addBooleanOption("tests.htmlReports", "Enable HTML report generation.", false);
     testTasks.configureEach(
         task -> {
           task.reports(
