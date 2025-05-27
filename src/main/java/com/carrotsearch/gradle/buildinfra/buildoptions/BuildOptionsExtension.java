@@ -7,7 +7,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
 public abstract class BuildOptionsExtension {
-  abstract NamedDomainObjectContainer<BuildOption> getAllOptions();
+  public abstract NamedDomainObjectContainer<BuildOption> getAllOptions();
 
   /** Returns a lazy provider for the given option. */
   public Provider<String> optionValue(String name) {
