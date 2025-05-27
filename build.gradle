@@ -19,12 +19,13 @@ project.ext.websiteAddress = "https://github.com/carrotsearch/gradle-build-infra
 project.ext.vcsAddress = "git@github.com:carrotsearch/gradle-build-infra.git"
 
 dependencies {
-  implementation(libs.spotless.plugin) {
+  api(libs.spotless.plugin) {
     exclude module: "groovy-xml"
   }
-  implementation(libs.forbiddenapis.plugin)
-  implementation(libs.benmanes.versions.plugin)
-  implementation(libs.version.catalog.update.plugin)
+  api(libs.forbiddenapis.plugin)
+  api(libs.benmanes.versions.plugin)
+  api(libs.version.catalog.update.plugin)
+
   implementation(libs.jackson.databind)
   implementation(libs.carrotsearch.procfork)
 
