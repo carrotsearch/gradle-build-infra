@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.dependencychecks.it
+package com.carrotsearch.gradle.buildinfra
 
 import groovy.transform.CompileStatic
 import org.assertj.core.api.Assertions

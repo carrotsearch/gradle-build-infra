@@ -48,6 +48,9 @@ with the following defaults:
 Plugin: ```com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin```
 --
 
+Includes the ```com.carrotsearch.gradle.opts``` plugin transitively 
+(https://github.com/carrotsearch/gradle-opts-plugin).
+
 Adds the infrastructure for "build options". Build options are key-value pairs 
 (gradle Provider<String> types), with values sourced dynamically from (in order):
 * system property (-Dfoo=value),

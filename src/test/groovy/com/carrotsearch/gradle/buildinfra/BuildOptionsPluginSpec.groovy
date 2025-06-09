@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.dependencychecks.it
+package com.carrotsearch.gradle.buildinfra
 
 import org.gradle.testkit.runner.TaskOutcome
 

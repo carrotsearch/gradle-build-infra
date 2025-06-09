@@ -13,7 +13,7 @@ repositories {
 }
 
 project.group = "com.carrotsearch.gradle.buildinfra"
-project.version = libs.versions.projectVersion.get()
+  
 project.description = "Reusable, opinionated gradle build infrastructure"
 project.ext.websiteAddress = "https://github.com/carrotsearch/gradle-build-infra"
 project.ext.vcsAddress = "git@github.com:carrotsearch/gradle-build-infra.git"
@@ -25,6 +25,7 @@ dependencies {
   api(libs.forbiddenapis.plugin)
   api(libs.benmanes.versions.plugin)
   api(libs.version.catalog.update.plugin)
+  api(libs.buildoptions.plugin)
 
   implementation(libs.jackson.databind)
   implementation(libs.carrotsearch.procfork)
@@ -50,7 +51,7 @@ gradlePlugin {
       description = project.description
       tags.set([
         'convention',
-        'built-utility',
+        'build-utility',
         'testing',
         'randomizedtesting'
       ])
@@ -116,7 +117,7 @@ publishing {
   }
 
   publications {
-    withType(MavenPublication) {
+    withType(MavenPublication).configureEach {
       pom {
         inceptionYear = "2025"
 
