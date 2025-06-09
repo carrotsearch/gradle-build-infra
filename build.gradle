@@ -13,7 +13,7 @@ repositories {
 }
 
 project.group = "com.carrotsearch.gradle.buildinfra"
-  
+
 project.description = "Reusable, opinionated gradle build infrastructure"
 project.ext.websiteAddress = "https://github.com/carrotsearch/gradle-build-infra"
 project.ext.vcsAddress = "git@github.com:carrotsearch/gradle-build-infra.git"
