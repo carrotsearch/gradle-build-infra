@@ -13,6 +13,7 @@ repositories {
 }
 
 project.group = "com.carrotsearch.gradle.buildinfra"
+project.version = libs.versions.projectVersion.get()
 
 project.description = "Reusable, opinionated gradle build infrastructure"
 project.ext.websiteAddress = "https://github.com/carrotsearch/gradle-build-infra"
