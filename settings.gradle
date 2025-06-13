@@ -10,4 +10,8 @@ dependencyResolutionManagement {
   }
 }
 
+if (file("gradle-opts-plugin").exists()) {
+  includeBuild('gradle-opts-plugin')
+}
+
 rootProject.name = 'gradle-buildinfra-plugin'
