@@ -27,6 +27,7 @@ dependencies {
   api(libs.benmanes.versions.plugin)
   api(libs.version.catalog.update.plugin)
   api(libs.buildoptions.plugin)
+  api(libs.dependencychecks.plugin)
 
   implementation(libs.jackson.databind)
   implementation(libs.carrotsearch.procfork)
