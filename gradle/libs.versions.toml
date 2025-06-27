@@ -2,12 +2,9 @@
 projectVersion = "0.0.16-SNAPSHOT"
 projectVersionSelfApply = "0.0.15"
 minJava = "21"
-googleJavaFormat = "1.27.0"
-jgit = "7.3.0.202506031305-r"
+googleJavaFormat = "1.25.2"
 
 [libraries]
-jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
-gjf = { module = "com.google.googlejavaformat:google-java-format", version.ref = "googleJavaFormat" }
 buildoptions-plugin = "com.carrotsearch.gradle.opts:com.carrotsearch.gradle.opts.gradle.plugin:0.2.0"
 dependencychecks-plugin = "com.carrotsearch.gradle.dependencychecks:com.carrotsearch.gradle.dependencychecks.gradle.plugin:0.1.0"
 spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.0.4"

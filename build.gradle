@@ -28,9 +28,7 @@ dependencies {
   api(libs.version.catalog.update.plugin)
   api(libs.buildoptions.plugin)
   api(libs.dependencychecks.plugin)
-  api(libs.gjf)
 
-  implementation(libs.jgit)
   implementation(libs.jackson.databind)
   implementation(libs.carrotsearch.procfork)
 
