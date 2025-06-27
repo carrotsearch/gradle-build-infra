@@ -5,7 +5,8 @@ import com.diffplug.gradle.spotless.GroovyGradleExtension;
 import com.diffplug.gradle.spotless.JavaExtension;
 import com.diffplug.gradle.spotless.SpotlessExtension;
 import com.diffplug.gradle.spotless.SpotlessPlugin;
-import com.diffplug.spotless.FormatterFunc;
+import com.diffplug.spotless.FormatterStep;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
+import org.jetbrains.annotations.Nullable;
 
 public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
   @Inject
@@ -122,24 +124,35 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     return gjfVersion.get().toString();
   }
 
-  public static class WildcardImportDetector implements Serializable, FormatterFunc {
+  public static class WildcardImportDetectorStep implements Serializable, FormatterStep {
     private final Pattern wildcardImport =
         Pattern.compile("(^import)(\\s+)(?:static\\s*)?([^*\\s]+\\.\\*;)", Pattern.MULTILINE);
 
     @Override
-    public String apply(String input) throws Exception {
-      Matcher matcher = wildcardImport.matcher(input);
+    public String getName() {
+      return "Custom wildcard import detector";
+    }
+
+    @Override
+    public @Nullable String format(String rawUnix, File file) throws Exception {
+      Matcher matcher = wildcardImport.matcher(rawUnix);
       ArrayList<String> matches = new ArrayList<>();
       while (matcher.find()) {
         matches.add(matcher.group());
       }
 
       if (matches.isEmpty()) {
-        return input;
+        return rawUnix;
       }
 
       throw new AssertionError(
-          "Replace with explicit imports (spotless can't fix it): " + matches.iterator().next());
+          "Replace static imports with explicit imports (spotless can't fix it): "
+              + matches.iterator().next());
+    }
+
+    @Override
+    public void close() throws Exception {
+      // Do nothing.
     }
   }
 
@@ -157,7 +170,7 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     java.endWithNewline();
 
     // Idea from: https://github.com/opensearch-project/opensearch-java/pull/1180/files
-    java.custom("Wildcard imports disallowed ", new WildcardImportDetector());
+    java.addStep(new WildcardImportDetectorStep());
 
     var gjf = java.googleJavaFormat(googleVecVersion);
     gjf.formatJavadoc(true);
