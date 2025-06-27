@@ -1,6 +1,7 @@
 package com.carrotsearch.gradle.buildinfra.conventions;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
+import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
 import com.diffplug.gradle.spotless.GroovyGradleExtension;
 import com.diffplug.gradle.spotless.JavaExtension;
 import com.diffplug.gradle.spotless.SpotlessExtension;
@@ -9,6 +10,7 @@ import com.diffplug.spotless.FormatterStep;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,6 +21,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.tasks.TaskContainer;
 import org.jetbrains.annotations.Nullable;
 
 public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
@@ -85,21 +88,79 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
   }
 
   private void applyGradleScriptsFormatting(Project project, SpotlessExtension spotlessExtension) {
-    // Add an extra format to cover buildinfra's sources.
+    // Add an extra format to cover groovy/gradle sources.
     var isRootProject = project == project.getRootProject();
 
-    spotlessExtension.format(
-        "gradleGroovy",
-        GroovyGradleExtension.class,
-        gradle -> {
-          gradle.greclipse();
-          gradle.leadingTabsToSpaces(2);
-          if (isRootProject) {
-            gradle.target("*.gradle", "gradle/**/*.gradle");
-          } else {
-            gradle.target("*.gradle");
-          }
-        });
+    var spotlessGradleScriptsOptionName = "buildinfra.spotlessGradleGroovyScripts";
+    var spotlessGradleScriptsOption =
+        project
+            .getExtensions()
+            .getByType(BuildOptionsExtension.class)
+            .addBooleanOption(
+                spotlessGradleScriptsOptionName,
+                "Enable formatting and validation of groovy/gradle scripts (you may want to turn it off if you "
+                    + "don't work with gradle/groovy scripts.",
+                true);
+
+    if (spotlessGradleScriptsOption.get()) {
+      spotlessExtension.format(
+          "gradleGroovy",
+          GroovyGradleExtension.class,
+          gradle -> {
+            gradle.greclipse();
+            gradle.leadingTabsToSpaces(2);
+            if (isRootProject) {
+              gradle.target("*.gradle", "gradle/**/*.gradle");
+            } else {
+              gradle.target("*.gradle");
+            }
+          });
+    } else {
+      if (isRootProject) {
+        project
+            .getTasks()
+            .register(
+                "spotlessGradleGroovyIsOff",
+                task -> {
+                  task.doFirst(
+                      t -> {
+                        t.getLogger()
+                            .warn(
+                                "Spotless is turned off for gradle/groovy scripts. CI checks"
+                                    + " may not pass if you have formatting differences"
+                                    + " (enable '{}' build option to check and apply gradle/groovy formatting).",
+                                spotlessGradleScriptsOptionName);
+                      });
+                });
+      }
+
+      List.of("spotlessGradleGroovy", "spotlessGradleGroovyApply", "spotlessGradleGroovyCheck")
+          .forEach(
+              taskName -> {
+                TaskContainer tasks = project.getTasks();
+                tasks.register(
+                    taskName,
+                    task -> {
+                      task.dependsOn(":spotlessGradleGroovyIsOff");
+                    });
+              });
+    }
+
+    project
+        .getTasks()
+        .named("tidy")
+        .configure(
+            t -> {
+              t.dependsOn("spotlessGradleGroovyApply");
+            });
+
+    project
+        .getTasks()
+        .named("check")
+        .configure(
+            t -> {
+              t.dependsOn("spotlessGradleGroovyCheck");
+            });
   }
 
   private String getGoogleJavaFormatVersion(Project rootProject) {
