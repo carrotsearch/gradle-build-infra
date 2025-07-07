@@ -46,16 +46,19 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     applyGradleScriptsFormatting(project, spotlessExtension);
 
     // Apply java formatting settings to all java projects.
-    var licenseHeaderFile =
+    var licenseHeaderFile = project.getObjects().fileProperty();
+
+    File licenseFile =
         project
-            .getObjects()
-            .fileProperty()
-            .convention(
-                project
-                    .getRootProject()
-                    .getLayout()
-                    .getProjectDirectory()
-                    .file("gradle/spotless/license-header.txt"));
+            .getRootProject()
+            .getLayout()
+            .getProjectDirectory()
+            .file("gradle/spotless/license-header.txt")
+            .getAsFile();
+
+    if (licenseFile.exists()) {
+      licenseHeaderFile.convention(licenseFile);
+    }
 
     project
         .getPlugins()
