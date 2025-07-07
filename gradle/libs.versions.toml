@@ -14,7 +14,7 @@ version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littl
 jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.19.1"
 carrotsearch-procfork = "com.carrotsearch:procfork:1.0.6"
 assertj = "org.assertj:assertj-core:4.0.0-M1"
-junit-jupiter = "org.junit.jupiter:junit-jupiter:5.13.2"
+junit-jupiter = "org.junit.jupiter:junit-jupiter:5.13.3"
 spockframework = "org.spockframework:spock-bom:2.4-M6-groovy-3.0"
 
 [plugins]
