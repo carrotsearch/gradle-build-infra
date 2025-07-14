@@ -7,7 +7,7 @@ googleJavaFormat = "1.25.2"
 [libraries]
 buildoptions-plugin = "com.carrotsearch.gradle.opts:com.carrotsearch.gradle.opts.gradle.plugin:0.2.0"
 dependencychecks-plugin = "com.carrotsearch.gradle.dependencychecks:com.carrotsearch.gradle.dependencychecks.gradle.plugin:0.1.0"
-spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.0.4"
+spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:7.1.0"
 forbiddenapis-plugin = "de.thetaphi:forbiddenapis:3.9"
 benmanes-versions-plugin = "com.github.ben-manes:gradle-versions-plugin:0.52.0"
 version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:1.0.0"
