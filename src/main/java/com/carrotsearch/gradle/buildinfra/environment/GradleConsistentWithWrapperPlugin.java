@@ -84,21 +84,17 @@ public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
     GradleVersion baseVersion = GradleVersion.current().getBaseVersion();
     GradleVersion expectedVersion = GradleVersion.version(expectedGradleVersion);
 
-    boolean mismatch = false;
-    switch (optionValue) {
-      case EXACT -> {
-        // do nothing
-        mismatch = false;
-      }
-      case BASE -> {
-        baseVersion = baseVersion.getBaseVersion();
-        expectedVersion = expectedVersion.getBaseVersion();
-        mismatch = baseVersion.compareTo(expectedVersion) != 0;
-      }
-      case MAJOR -> {
-        mismatch = baseVersion.getMajorVersion() != expectedVersion.getMajorVersion();
-      }
-    }
+    boolean mismatch =
+        switch (optionValue) {
+          case OFF -> false;
+          case EXACT -> baseVersion.compareTo(expectedVersion) != 0;
+          case BASE -> {
+            baseVersion = baseVersion.getBaseVersion();
+            expectedVersion = expectedVersion.getBaseVersion();
+            yield baseVersion.compareTo(expectedVersion) != 0;
+          }
+          case MAJOR -> baseVersion.getMajorVersion() != expectedVersion.getMajorVersion();
+        };
 
     if (mismatch) {
       throw reportError(
