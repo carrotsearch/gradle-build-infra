@@ -1,9 +1,12 @@
 package com.carrotsearch.gradle.buildinfra.environment;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
+import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
+import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,9 +21,32 @@ public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
     super(problems);
   }
 
+  enum ConsistencyOptions {
+    EXACT,
+    MAJOR,
+    BASE,
+    OFF;
+  }
+
   @Override
   public void apply(Project project) {
     super.pluginAppliedToRootProject(project);
+
+    project.getPlugins().apply(BuildOptionsPlugin.class);
+    var buildOptions = project.getExtensions().getByType(BuildOptionsExtension.class);
+    var optionValue =
+        ConsistencyOptions.valueOf(
+            buildOptions
+                .addOption(
+                    "check.gradlewrapper.consistency",
+                    "Verify gradle matches gradle wrapper version (exact, major, minor, off).",
+                    "exact")
+                .get()
+                .toUpperCase(Locale.ROOT));
+
+    if (optionValue == ConsistencyOptions.OFF) {
+      return;
+    }
 
     Properties wrapperProps = new Properties();
     {
@@ -55,13 +81,32 @@ public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
     }
 
     String expectedGradleVersion = m.group("version");
-    if (GradleVersion.current()
-            .getBaseVersion()
-            .compareTo(GradleVersion.version(expectedGradleVersion))
-        != 0) {
+    GradleVersion baseVersion = GradleVersion.current().getBaseVersion();
+    GradleVersion expectedVersion = GradleVersion.version(expectedGradleVersion);
+
+    boolean mismatch = false;
+    switch (optionValue) {
+      case EXACT -> {
+        // do nothing
+        mismatch = false;
+      }
+      case BASE -> {
+        baseVersion = baseVersion.getBaseVersion();
+        expectedVersion = expectedVersion.getBaseVersion();
+        mismatch = baseVersion.compareTo(expectedVersion) != 0;
+      }
+      case MAJOR -> {
+        mismatch = baseVersion.getMajorVersion() != expectedVersion.getMajorVersion();
+      }
+    }
+
+    if (mismatch) {
       throw reportError(
           "environment-gradle-wrapper-mismatch",
-          "Gradle version does not match the one in gradle-wrapper.properties.",
+          "Gradle version "
+              + baseVersion
+              + " does not match the one in gradle-wrapper.properties: "
+              + expectedVersion,
           problemSpec -> {
             problemSpec.solution(
                 "Use ./gradlew or .\\gradlew.bat scripts to use the project's gradle version ("
