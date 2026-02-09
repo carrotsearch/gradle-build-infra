@@ -1,8 +1,8 @@
 [versions]
-projectVersion = "0.0.20-SNAPSHOT"
+projectVersion = "0.0.20"
 projectVersionSelfApply = "0.0.19"
 minJava = "21"
-googleJavaFormat = "1.25.2"
+googleJavaFormat = "1.34.1"
 
 [libraries]
 buildoptions-plugin = "com.carrotsearch.gradle.opts:com.carrotsearch.gradle.opts.gradle.plugin:0.2.0"
