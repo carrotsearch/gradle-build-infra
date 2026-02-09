@@ -62,7 +62,7 @@ jobs:
       CI: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/prepare-gradle-build
         with:
@@ -76,7 +76,7 @@ jobs:
 
       - name: Store failed test outputs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: failed-test-outputs
           path: '**/OUTPUT-*.txt'
