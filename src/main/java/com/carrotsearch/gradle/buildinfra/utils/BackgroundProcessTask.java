@@ -25,9 +25,14 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.work.DisableCachingByDefault;
 
+@DisableCachingByDefault(
+    because = "It's stupid to cache the result of an explicit background process task.")
 public abstract class BackgroundProcessTask extends DefaultTask {
   @Input
   public abstract Property<Boolean> getUseShell();
@@ -35,6 +40,7 @@ public abstract class BackgroundProcessTask extends DefaultTask {
   @Input
   public abstract Property<String> getExecutable();
 
+  @PathSensitive(PathSensitivity.ABSOLUTE)
   @InputDirectory
   @Optional
   public abstract Property<String> getCwd();
