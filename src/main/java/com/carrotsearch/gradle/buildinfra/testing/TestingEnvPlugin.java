@@ -117,14 +117,18 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
       installVerboseCheckHook(project);
       installRootSeed(project, ext);
       installGlobalTestsSummary(project, ext);
+    } else {
+      project.getRootProject().getPlugins().apply(TestingEnvPlugin.class);
     }
 
-    project.getExtensions().create(TestingProjectExtension.NAME, TestingProjectExtension.class);
     project
         .getPlugins()
         .withType(
             JavaBasePlugin.class,
             plugin -> {
+              project
+                  .getExtensions()
+                  .create(TestingProjectExtension.NAME, TestingProjectExtension.class);
               applyTestingEnv(project);
             });
   }
@@ -383,6 +387,12 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
             "The number of forked test JVMs.",
             project.getProviders().provider(() -> defaultTestJvms()));
 
+    var echoOutputOnError =
+        buildOptions.addBooleanOption(
+            "tests.echoOutputOnError",
+            "Echo all stdout/stderr from failed tests in the summary unless verbose mode is on.",
+            project.getProviders().environmentVariable("CI").map(v -> true).orElse(false));
+
     var verboseOption =
         buildOptions.addBooleanOption(
             "tests.verbose", "Echo all stdout/stderr from tests to gradle console.", false);
@@ -472,7 +482,7 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           }
 
           // install stdout/stderr handlers.
-          installOutputHandlers(task, getFilesystemOps(), verboseMode);
+          installOutputHandlers(task, getFilesystemOps(), verboseMode, echoOutputOnError.get());
         });
   }
 
@@ -485,14 +495,15 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
 
   /** Set up error logging and a custom error stream redirector. */
   private void installOutputHandlers(
-      Test task, FileSystemOperations filesystemOps, boolean verboseMode) {
+      Test task,
+      FileSystemOperations filesystemOps,
+      boolean verboseMode,
+      boolean fullOutputOnError) {
+    BuildOptionsExtension buildOptions =
+        task.getProject().getExtensions().getByType(BuildOptionsExtension.class);
+
     var stackFiltering =
-        task.getProject()
-            .getExtensions()
-            .getByType(BuildOptionsExtension.class)
-            .getOption("tests.stackfiltering")
-            .asBooleanProvider()
-            .getOrElse(true);
+        buildOptions.getOption("tests.stackfiltering").asBooleanProvider().getOrElse(true);
 
     TestLoggingContainer container = task.getTestLogging();
     container.events();
@@ -549,7 +560,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
             logging,
             spillDir,
             testOutputsDir,
-            verboseMode);
+            verboseMode,
+            fullOutputOnError);
     task.addTestOutputListener(listener);
     task.addTestListener(listener);
   }

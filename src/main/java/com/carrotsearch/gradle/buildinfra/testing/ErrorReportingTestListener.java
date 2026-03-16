@@ -39,6 +39,7 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
   private final boolean verboseMode;
   private final StyledTextOutput styledOut;
   private final ReproduceLineExtension reproduceLineExtension;
+  private final boolean fullOutputOnErrorMode;
 
   public ErrorReportingTestListener(
       Logger taskLogger,
@@ -47,7 +48,8 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
       TestLogging testLogging,
       Path spillDir,
       Path outputsDir,
-      boolean verboseMode) {
+      boolean verboseMode,
+      boolean fullOutputOnErrorMode) {
     this.formatter = new FullExceptionFormatter(testLogging);
     this.spillDir = spillDir;
     this.outputsDir = outputsDir;
@@ -55,6 +57,7 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
     this.taskLogger = taskLogger;
     this.styledOut = styledOut;
     this.reproduceLineExtension = reproduceLineExtension;
+    this.fullOutputOnErrorMode = fullOutputOnErrorMode;
   }
 
   @Override
@@ -113,7 +116,11 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
                     Arrays.asList(
                         suite.getDisplayName() + " > TESTS FAILED",
                         "test suite's output: " + outputLog,
-                        "reproduce with: " + reproduceLineExtension.getGradleReproLine(suite))));
+                        "reproduce with: " + reproduceLineExtension.getGradleReproLine(suite),
+                        "full output copied below: ")));
+            if (fullOutputOnErrorMode) {
+              taskLogger.error(Files.readString(outputLog, StandardCharsets.UTF_8));
+            }
           } else {
             synchronized (styledOut) {
               styledOut.append("\n");
@@ -139,7 +146,7 @@ class ErrorReportingTestListener implements TestOutputListener, TestListener {
                   .append(outputLog.toString())
                   .style(StyledTextOutput.Style.Normal);
 
-              if (Files.size(outputLog) > WARN_OUTPUT_SIZE_LIMIT) {
+              if (!fullOutputOnErrorMode && Files.size(outputLog) > WARN_OUTPUT_SIZE_LIMIT) {
                 styledOut.append(
                     " (too large to display here: " + Files.size(outputLog) + " bytes).\n");
               } else {
