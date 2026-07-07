@@ -15,7 +15,7 @@ version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littl
 jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.22.0"
 assertj = "org.assertj:assertj-core:4.0.0-M1"
 junit-jupiter = "org.junit.jupiter:junit-jupiter:6.1.1"
-spockframework = "org.spockframework:spock-bom:2.4-M6-groovy-3.0"
+spockframework = "org.spockframework:spock-bom:2.4-groovy-5.0"
 
 [plugins]
 buildinfra = { id = "com.carrotsearch.gradle.buildinfra", version.ref = "projectVersionSelfApply" }
