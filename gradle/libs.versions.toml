@@ -7,14 +7,14 @@ googleJavaFormat = "1.35.0"
 [libraries]
 carrotsearch-procfork = "com.carrotsearch:procfork:1.0.6"
 buildoptions-plugin = "com.carrotsearch.gradle.opts:com.carrotsearch.gradle.opts.gradle.plugin:0.2.2"
-dependencychecks-plugin = "com.carrotsearch.gradle.dependencychecks:com.carrotsearch.gradle.dependencychecks.gradle.plugin:0.2.2"
+dependencychecks-plugin = "com.carrotsearch.gradle.dependencychecks:com.carrotsearch.gradle.dependencychecks.gradle.plugin:0.2.3"
 spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:8.9.0"
 forbiddenapis-plugin = "de.thetaphi:forbiddenapis:3.10"
 benmanes-versions-plugin = "com.github.ben-manes:gradle-versions-plugin:0.54.0"
 version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:1.1.1"
 jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.22.1"
-assertj = "org.assertj:assertj-core:4.0.0-M1"
-junit-jupiter = "org.junit.jupiter:junit-jupiter:6.1.2"
+assertj = "org.assertj:assertj-core:3.27.7"
+junit-jupiter = "org.junit.jupiter:junit-jupiter:6.1.3"
 spockframework = "org.spockframework:spock-bom:2.4-groovy-5.0"
 
 [plugins]
