@@ -354,10 +354,9 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           for (var optKey :
               List.of(
                   "tests.asserts",
+                  "tests.iters",
                   "tests.timeoutSuite",
-                  "tests.filter",
                   "tests.timeout",
-                  "tests.timeoutSuite",
                   "tests.filter")) {
             BuildOption opt = buildOptions.getOption(optKey);
             if (opt.isPresent()) {
