@@ -19,13 +19,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.configuration.BuildFeatures;
-import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -417,7 +416,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
           // do not fail immediately.
           task.getFilter().setFailOnNoMatchingTests(false);
 
-          Provider<Directory> cwdDir = projectDir.dir(cwdDirOption);
+          DirectoryProperty cwdDir = project.getObjects().directoryProperty();
+          cwdDir.set(projectDir.dir(cwdDirOption));
           task.setWorkingDir(cwdDir);
           task.doFirst(
               t -> {
@@ -428,7 +428,8 @@ public abstract class TestingEnvPlugin extends AbstractPlugin {
                 }
               });
 
-          Provider<Directory> tmpDir = projectDir.dir(tmpDirOption);
+          DirectoryProperty tmpDir = project.getObjects().directoryProperty();
+          tmpDir.set(projectDir.dir(tmpDirOption));
           task.systemProperty("java.io.tmpdir", tmpDir.get().getAsFile().getAbsolutePath());
           task.doFirst(
               t -> {
