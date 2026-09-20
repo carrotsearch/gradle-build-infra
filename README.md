@@ -217,3 +217,131 @@ This plugin does the following:
 * reads ```minJava``` version string from the ```libs``` version catalog and
   sets the ```sourceCompatibility```, ```targetCompatibility``` and toolchain's
   version to this string.
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.publishing.mavencentral.MavenCentralPublishingPlugin```
+--
+
+Publishes selected projects of a build to Maven Central via
+[Sonatype Central Portal](https://central.sonatype.org/publish/publish-portal-api/):
+
+* release versions are published to a local, build-relative Maven repository, zipped into
+  a single bundle and uploaded using Central Portal's publisher API; the plugin then (optionally)
+  waits until the deployment passes validation,
+* ```-SNAPSHOT``` versions are published directly to Central Portal's snapshot repository
+  (snapshots have to be enabled for the namespace in Central Portal).
+
+This plugin is *not* applied automatically. Apply it to the root project by class,
+then declare which projects should be published and what should go into their POMs.
+
+```groovy
+plugins {
+  id "com.carrotsearch.gradle.buildinfra" version "$version" apply false
+}
+
+apply plugin: com.carrotsearch.gradle.buildinfra.publishing.mavencentral.MavenCentralPublishingPlugin
+
+mavenCentralPublishing {
+  // Paths of projects to publish (':' is the root project).
+  projects = [':foo', ':bar']
+
+  // POM content shared by all published projects (plain MavenPom).
+  pom {
+    url = 'https://github.com/example/foobar'
+    licenses {
+      license {
+        name = 'Apache 2'
+        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+      }
+    }
+    developers {
+      developer {
+        id = 'jdoe'
+        name = 'John Doe'
+        email = 'jdoe@example.com'
+      }
+    }
+    scm {
+      connection = 'scm:git:git@github.com:example/foobar.git'
+      developerConnection = 'scm:git:git@github.com:example/foobar.git'
+      url = 'https://github.com/example/foobar'
+    }
+  }
+
+  // Adds a project to publish, with project-specific POM tweaks. These are always applied
+  // after the shared POM configuration.
+  project(':baz') {
+    pom {
+      name = 'Baz'
+      description = 'The Baz library.'
+    }
+  }
+}
+```
+
+POM's ```name``` and ```description``` default to the project's name and description.
+
+Each published project gets ```maven-publish``` and ```signing``` plugins applied. Projects with
+the ```java``` plugin also get sources and javadoc jars and a ```jars``` publication of the ```java```
+component (with the artifact identifier set to ```base.archivesName```). Any other Maven publication
+declared in a published project is signed, configured and published in the same way.
+
+Tasks added to the root project:
+
+* ```publishToMavenCentral``` - publishes everything: a bundle upload for release versions,
+  the snapshot repository for snapshot versions.
+* ```publishLocal``` - publishes all artifacts to ```build/maven``` (always cleaned first).
+* ```prepareMavenCentralBundle``` - creates ```build/maven-bundle/bundle-${bundleName}-${version}.zip```,
+  with ```maven-metadata.xml``` files and unwanted checksums filtered out. Useful for inspecting what
+  would be uploaded.
+* ```uploadMavenCentralBundle``` - uploads the bundle and waits for validation.
+* ```checkCleanCheckout``` - fails if the git checkout has any modified or untracked files
+  (uses ```GitInfoPlugin```, which is applied automatically).
+
+The version of the root project decides whether the build is a release or a snapshot.
+
+Credentials and signing: Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/)
+is read from ```mavenCentralUsername``` and ```mavenCentralPassword``` gradle properties
+(```nexusUsername``` and ```nexusPassword``` are used as a fallback). These can be set in
+```~/.gradle/gradle.properties``` or passed via ```ORG_GRADLE_PROJECT_mavenCentralUsername``` and
+```ORG_GRADLE_PROJECT_mavenCentralPassword``` environment variables.
+
+Signatures are required for releases and optional for snapshots. The signing plugin's
+[default configuration](https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials)
+(```signing.keyId```, ```signing.password```, ```signing.secretKeyRingFile```) is used, unless
+```signingKey``` (ascii-armored private key), ```signingPassword``` and, optionally, ```signingKeyId```
+gradle properties are present - these configure in-memory keys, which is convenient on a CI.
+
+Other options (all are optional, the defaults are shown):
+
+```groovy
+mavenCentralPublishing {
+  // The name of the bundle file and of the deployment (suffixed with the version).
+  bundleName = rootProject.name
+
+  // AUTOMATIC: release to Maven Central once validated.
+  // USER_MANAGED: validate, then wait for a manual "publish" (or "drop") in Central Portal.
+  publishingType = 'AUTOMATIC'
+
+  // How long to wait until the deployment is validated (USER_MANAGED) or is being
+  // published (AUTOMATIC). The build fails if the validation fails. Set to
+  // Duration.ZERO to upload and not wait at all.
+  validationTimeout = java.time.Duration.ofMinutes(30)
+  statusPollInterval = java.time.Duration.ofSeconds(5)
+
+  // Releases can only be published from a clean git checkout.
+  requireCleanCheckout = true
+
+  // Publish gradle module metadata (*.module files).
+  gradleModuleMetadata = true
+
+  // Checksums to include in the bundle. Maven Central requires md5 and sha1; sha256 and
+  // sha512 are optional (and count towards Central Portal's published file limits).
+  bundleChecksums = ['md5', 'sha1']
+
+  username = providers.gradleProperty("mavenCentralUsername")
+  password = providers.gradleProperty("mavenCentralPassword")
+
+  portalUrl = 'https://central.sonatype.com'
+  snapshotsUrl = 'https://central.sonatype.com/repository/maven-snapshots/'
+}
+```

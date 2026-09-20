@@ -14,8 +14,11 @@ benmanes-versions-plugin = "io.github.ben-manes.versions.settings:io.github.ben-
 version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:1.1.1"
 jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.22.2"
 assertj = "org.assertj:assertj-core:3.27.7"
+# A simple http server for tests.
+httpcore5 = "org.apache.httpcomponents.core5:httpcore5:5.4.3"
 junit-jupiter = "org.junit.jupiter:junit-jupiter:6.1.3"
-spockframework = "org.spockframework:spock-bom:2.4-groovy-5.0"
+# The groovy variant must match the groovy version bundled with gradle (testkit tests).
+spockframework = "org.spockframework:spock-bom:2.4-groovy-4.0"
 
 [plugins]
 buildinfra = { id = "com.carrotsearch.gradle.buildinfra", version.ref = "projectVersionSelfApply" }
