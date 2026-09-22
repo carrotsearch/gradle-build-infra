@@ -2,6 +2,7 @@ package com.carrotsearch.gradle.buildinfra;
 
 import javax.inject.Inject;
 import org.gradle.api.configuration.BuildFeatures;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.provider.Property;
 import org.gradle.process.ExecOperations;
 
@@ -18,6 +19,12 @@ public abstract class BuildInfraExtension {
    */
   @Inject
   public abstract ExecOperations getExecOps();
+
+  /**
+   * @return Returns the {@code FileSystemOperations} implementation.
+   */
+  @Inject
+  public abstract FileSystemOperations getFileOps();
 
   /**
    * @return Returns the {@code BuildFeatures} at configuration time.
