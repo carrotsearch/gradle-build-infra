@@ -1,6 +1,7 @@
 package com.carrotsearch.gradle.buildinfra.conventions;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask;
 import javax.inject.Inject;
 import nl.littlerobots.vcu.plugin.VersionCatalogUpdateExtension;
 import nl.littlerobots.vcu.plugin.VersionCatalogUpdateTask;
@@ -24,6 +25,12 @@ public class ApplyVersionsTomlCleanupsPlugin extends AbstractPlugin {
 
     project.getPlugins().apply(com.github.benmanes.gradle.versions.VersionsPlugin.class);
     project.getPlugins().apply(nl.littlerobots.vcu.plugin.VersionCatalogUpdatePlugin.class);
+
+    // Ignore prerelease versions (alpha, beta, rc, milestones, snapshots, etc.).
+    project
+        .getTasks()
+        .withType(DependencyUpdatesTask.class)
+        .configureEach(task -> task.setRejectPreReleases(true));
 
     // configure version catalog extension.
     var ext =

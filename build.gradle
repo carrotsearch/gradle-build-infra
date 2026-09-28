@@ -62,6 +62,35 @@ gradlePlugin {
   }
 }
 
+// Ignore prerelease versions in dependency updates. The buildinfra plugin does this from
+// version 0.0.27 on (rejectPreReleases); this is needed until that version is self-applied.
+tasks.withType(com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask).configureEach {
+  rejectVersionIf {
+    // Spock's groovy variant must match the groovy bundled with gradle: ignore other variants.
+    if (it.candidate.group == 'org.spockframework') {
+      def variant = it.currentVersion.replaceFirst(/^.*(-groovy-[\d.]+)$/, '$1')
+      if (!it.candidate.version.endsWith(variant)) {
+        return true
+      }
+    }
+
+    def version = it.candidate.version.toLowerCase(Locale.ROOT)
+    [
+      'alpha',
+      'beta',
+      'rc',
+      'cr',
+      'm',
+      'preview',
+      'ea',
+      'snapshot',
+      'dev'
+    ].any { qualifier ->
+      version ==~ /.*[.\-_]${qualifier}[.\-_]?\d*$/
+    }
+  }
+}
+
 tasks.withType(Javadoc).configureEach {
   it.options.addBooleanOption("Xdoclint:none", true)
 }
