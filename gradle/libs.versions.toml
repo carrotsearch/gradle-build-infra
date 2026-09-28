@@ -1,6 +1,6 @@
 [versions]
-projectVersion = "0.0.27"
-projectVersionSelfApply = "0.0.26"
+projectVersion = "0.0.28-SNAPSHOT"
+projectVersionSelfApply = "0.0.27"
 minJava = "21"
 googleJavaFormat = "1.35.0"
 
