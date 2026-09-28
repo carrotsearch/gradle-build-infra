@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.environment;
+package com.carrotsearch.gradle.buildinfra.gradlewrapper;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
@@ -16,7 +16,8 @@ import org.gradle.api.problems.Problems;
 import org.gradle.util.GradleVersion;
 
 public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
-  public static final String OPT_GRADLE_WRAPPER_CONSISTENCY = "check.gradlewrapper.consistency";
+  public static final String OPT_GRADLE_WRAPPER_CONSISTENCY =
+      "buildinfra.gradleWrapper.consistency";
 
   @Inject
   public GradleConsistentWithWrapperPlugin(Problems problems) {
@@ -36,12 +37,13 @@ public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
 
     project.getPlugins().apply(BuildOptionsPlugin.class);
     var buildOptions = project.getExtensions().getByType(BuildOptionsExtension.class);
+    failIfDeprecatedOptionUsed(buildOptions, "check.gradlewrapper.consistency");
     var optionValue =
         ConsistencyOptions.valueOf(
             buildOptions
                 .addOption(
                     OPT_GRADLE_WRAPPER_CONSISTENCY,
-                    "Verify gradle matches gradle wrapper version (exact, major, minor, off).",
+                    "Verify gradle matches gradle wrapper version (exact, major, base, off).",
                     "exact")
                 .get()
                 .toUpperCase(Locale.ROOT));

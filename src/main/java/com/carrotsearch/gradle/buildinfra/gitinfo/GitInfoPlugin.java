@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.environment;
+package com.carrotsearch.gradle.buildinfra.gitinfo;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import javax.inject.Inject;

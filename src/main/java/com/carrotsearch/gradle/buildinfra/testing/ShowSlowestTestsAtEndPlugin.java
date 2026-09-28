@@ -30,10 +30,9 @@ import org.gradle.tooling.events.task.TaskFailureResult;
 
 /** Prints the slowest tests and test suites (across all projects) at the end of the build. */
 public class ShowSlowestTestsAtEndPlugin extends AbstractPlugin {
-  public static final String OPT_SLOWEST_TESTS = "tests.slowestTests";
-  public static final String OPT_SLOWEST_TESTS_MIN_TIME = "tests.slowestTests.minTime";
-  public static final String OPT_SLOWEST_SUITES = "tests.slowestSuites";
-  public static final String OPT_SLOWEST_SUITES_MIN_TIME = "tests.slowestSuites.minTime";
+  public static final String OPT_SLOWEST_TESTS_MIN_TIME = "buildinfra.slowestTests.minTime";
+  public static final String OPT_SLOWEST_SUITES = "buildinfra.slowestTests.suites";
+  public static final String OPT_SLOWEST_SUITES_MIN_TIME = "buildinfra.slowestTests.suites.minTime";
 
   private static final String SERVICE_NAME = "testStatsService";
   private static final int LIMIT = 10;
@@ -120,9 +119,12 @@ public class ShowSlowestTestsAtEndPlugin extends AbstractPlugin {
     rootProject.getPlugins().apply(BuildOptionsPlugin.class);
     var buildOptions = rootProject.getExtensions().getByType(BuildOptionsExtension.class);
 
-    var slowestTests =
-        buildOptions.addBooleanOption(
-            OPT_SLOWEST_TESTS, "Print the summary of the slowest tests.", true);
+    for (var deprecated :
+        List.of(
+            "tests.slowestTests.minTime", "tests.slowestSuites", "tests.slowestSuites.minTime")) {
+      failIfDeprecatedOptionUsed(buildOptions, deprecated);
+    }
+
     var testsMinTime =
         buildOptions.addIntOption(
             OPT_SLOWEST_TESTS_MIN_TIME, "Minimum test time to consider a test slow (millis).", 500);
@@ -144,7 +146,6 @@ public class ShowSlowestTestsAtEndPlugin extends AbstractPlugin {
             spec ->
                 spec.parameters(
                     params -> {
-                      params.getSlowestTests().set(slowestTests.get());
                       params.getTestsMinTime().set(testsMinTime.get());
                       params.getSlowestSuites().set(slowestSuites.get());
                       params.getSuitesMinTime().set(suitesMinTime.get());
@@ -172,9 +173,7 @@ public class ShowSlowestTestsAtEndPlugin extends AbstractPlugin {
     private volatile boolean hadFailedTask;
 
     public void addTest(Entry entry) {
-      if (getParameters().getSlowestTests().get()) {
-        tests.add(entry);
-      }
+      tests.add(entry);
     }
 
     public void addSuite(Entry entry) {
@@ -218,8 +217,6 @@ public class ShowSlowestTestsAtEndPlugin extends AbstractPlugin {
   }
 
   public interface TestStatsServiceParams extends BuildServiceParameters {
-    Property<Boolean> getSlowestTests();
-
     Property<Integer> getTestsMinTime();
 
     Property<Boolean> getSlowestSuites();

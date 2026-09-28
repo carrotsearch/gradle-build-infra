@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.conventions;
+package com.carrotsearch.gradle.buildinfra.spotless;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
   public static final String OPT_SPOTLESS_GRADLE_GROOVY_SCRIPTS =
-      "buildinfra.spotlessGradleGroovyScripts";
+      "buildinfra.spotless.gradleScripts";
 
   @Inject
   public ApplySpotlessFormattingPlugin(Problems problems) {
@@ -95,6 +95,9 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
   private void applyGradleScriptsFormatting(Project project, SpotlessExtension spotlessExtension) {
     // Add an extra format to cover groovy/gradle sources.
     var isRootProject = project == project.getRootProject();
+
+    var buildOptions = project.getExtensions().getByType(BuildOptionsExtension.class);
+    failIfDeprecatedOptionUsed(buildOptions, "buildinfra.spotlessGradleGroovyScripts");
 
     var spotlessGradleScriptsOptionName = OPT_SPOTLESS_GRADLE_GROOVY_SCRIPTS;
     var spotlessGradleScriptsOption =

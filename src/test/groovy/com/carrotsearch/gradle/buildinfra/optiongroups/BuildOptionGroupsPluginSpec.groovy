@@ -1,6 +1,6 @@
-package com.carrotsearch.gradle.buildinfra.plugins.misc
+package com.carrotsearch.gradle.buildinfra.optiongroups
 
-import com.carrotsearch.gradle.buildinfra.publishing.mavencentral.AbstractIntegTest
+import com.carrotsearch.gradle.buildinfra.AbstractIntegTest
 import org.gradle.testkit.runner.TaskOutcome
 
 class BuildOptionGroupsPluginSpec extends AbstractIntegTest {
@@ -23,21 +23,23 @@ class BuildOptionGroupsPluginSpec extends AbstractIntegTest {
     result.task(":buildOptions").outcome == TaskOutcome.SUCCESS
     def out = result.output
     def headers = [
-      "Build environment and conventions",
-      "Build control and information",
+      "Build-infra plugins (enable/disable)",
+      "Build-infra plugin options",
       "Test reports and output",
       "Test JVMs and execution",
       "Test randomization (randomizedtesting)",
+      "Deprecated options (renamed)",
       "Other options"
     ]
-    headers.collect { out.indexOf(it) } == headers.collect { out.indexOf(it) }.sort()
     headers.every { out.contains(it) }
+    headers.collect { out.indexOf(it) } == headers.collect { out.indexOf(it) }.sort()
     // Each option under its group header.
-    out.indexOf("check.gradlewrapper.consistency") in (out.indexOf(headers[0])..out.indexOf(headers[1]))
-    out.indexOf("task.times.limit") in (out.indexOf(headers[1])..out.indexOf(headers[2]))
-    out.indexOf("tests.slowestTests") in (out.indexOf(headers[2])..out.indexOf(headers[3]))
+    out.indexOf("buildinfra.spotless ") in (out.indexOf(headers[0])..out.indexOf(headers[1]))
+    out.indexOf("buildinfra.spotless.gradleScripts") in (out.indexOf(headers[1])..out.indexOf(headers[2]))
+    out.indexOf("tests.htmlReports") in (out.indexOf(headers[2])..out.indexOf(headers[3]))
     out.indexOf("tests.jvms") in (out.indexOf(headers[3])..out.indexOf(headers[4]))
     out.indexOf("tests.seed") in (out.indexOf(headers[4])..out.indexOf(headers[5]))
-    out.indexOf("myproject.option") > out.indexOf(headers[5])
+    out.indexOf("task.times ") in (out.indexOf(headers[5])..out.indexOf(headers[6]))
+    out.indexOf("myproject.option") > out.indexOf(headers[6])
   }
 }

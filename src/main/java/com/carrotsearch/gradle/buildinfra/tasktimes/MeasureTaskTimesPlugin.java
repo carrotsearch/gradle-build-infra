@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.plugins.misc;
+package com.carrotsearch.gradle.buildinfra.tasktimes;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
@@ -30,13 +30,13 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 
 /**
  * Prints aggregate wall-clock times for all executed gradle tasks (collected across all projects).
+ * Applied (and switched on/off) by the umbrella plugin.
  */
 public class MeasureTaskTimesPlugin extends AbstractPlugin {
-  public static final String OPT_TASK_TIMES = "task.times";
-  public static final String OPT_TASK_TIMES_AGGREGATE = "task.times.aggregate";
-  public static final String OPT_TASK_TIMES_LIMIT = "task.times.limit";
-  public static final String OPT_TASK_TIMES_MIN_TIME = "task.times.mintime.millis";
-  public static final String OPT_TASK_TIMES_TIME_FORMAT = "task.times.time.format";
+  public static final String OPT_TASK_TIMES_AGGREGATE = "buildinfra.taskTimes.aggregate";
+  public static final String OPT_TASK_TIMES_LIMIT = "buildinfra.taskTimes.limit";
+  public static final String OPT_TASK_TIMES_MIN_TIME = "buildinfra.taskTimes.minTimeMillis";
+  public static final String OPT_TASK_TIMES_TIME_FORMAT = "buildinfra.taskTimes.timeFormat";
 
   /** Duration formats for the report. */
   public enum TimeFormat {
@@ -68,13 +68,14 @@ public class MeasureTaskTimesPlugin extends AbstractPlugin {
     project.getPlugins().apply(BuildOptionsPlugin.class);
     var buildOptions = project.getExtensions().getByType(BuildOptionsExtension.class);
 
-    var taskTimesOption =
-        buildOptions.addBooleanOption(
-            OPT_TASK_TIMES,
-            "Measures wall-time task execution and provides a summary of the longest tasks at "
-                + "the end of a successful build. Enabled by default on CI builds (when the CI "
-                + "environment variable is set).",
-            project.getProviders().environmentVariable("CI").map(v -> true).orElse(false));
+    for (var deprecated :
+        List.of(
+            "task.times.aggregate",
+            "task.times.limit",
+            "task.times.mintime.millis",
+            "task.times.time.format")) {
+      failIfDeprecatedOptionUsed(buildOptions, deprecated);
+    }
 
     var aggregateOption =
         buildOptions.addBooleanOption(
@@ -96,10 +97,6 @@ public class MeasureTaskTimesPlugin extends AbstractPlugin {
             OPT_TASK_TIMES_TIME_FORMAT,
             "Format of reported durations (compact, normal, full).",
             "compact");
-
-    if (!taskTimesOption.get()) {
-      return;
-    }
 
     TimeFormat timeFormat;
     try {

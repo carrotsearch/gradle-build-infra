@@ -1,6 +1,6 @@
 package com.carrotsearch.gradle.buildinfra
 
-import com.carrotsearch.gradle.buildinfra.publishing.mavencentral.AbstractIntegTest
+import com.carrotsearch.gradle.buildinfra.AbstractIntegTest
 import org.gradle.testkit.runner.TaskOutcome
 
 class BuildInfraExtensionSpec extends AbstractIntegTest {

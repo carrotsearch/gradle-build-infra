@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.conventions;
+package com.carrotsearch.gradle.buildinfra.forbiddenapis;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
@@ -24,7 +24,7 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.tasks.TaskCollection;
 
 public class ApplyForbiddenApisPlugin extends AbstractPlugin {
-  public static final String OPT_FORBIDDEN_APIS_DIR = "forbiddenApisDir";
+  public static final String OPT_FORBIDDEN_APIS_DIR = "buildinfra.forbiddenApis.dir";
 
   @Inject
   public ApplyForbiddenApisPlugin(Problems problems) {
@@ -35,6 +35,7 @@ public class ApplyForbiddenApisPlugin extends AbstractPlugin {
   public void apply(Project project) {
     project.getPlugins().apply(BuildOptionsPlugin.class);
     var buildOptions = project.getExtensions().getByType(BuildOptionsExtension.class);
+    failIfDeprecatedOptionUsed(buildOptions, "forbiddenApisDir");
 
     var forbiddenApisDir =
         project

@@ -8,7 +8,8 @@ and other build scaffolding utilities.
 Please take and use whatever you like. Contributions are welcome but if you need
 extensive changes, please fork and tweak to your liking.
 
-The following chapters describe sub-plugins that are applied to the build.
+The following chapters describe sub-plugins that are applied to the build. See
+[MIGRATION.md](MIGRATION.md) for notes on upgrading between versions.
 
 Plugin: ```com.carrotsearch.gradle.buildinfra``` (this plugin)
 --
@@ -24,7 +25,54 @@ buildinfra {
 }
 ```
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin```
+### Enabling and disabling sub-plugins
+
+Each sub-plugin can be switched off with a boolean build option named ```buildinfra.<plugin>```
+(all default to ```true```, except ```buildinfra.taskTimes``` which defaults to ```true``` only when
+the ```CI``` environment variable is set). A plugin's own options use the same prefix:
+```buildinfra.<plugin>.*```. Like all build options, the switches can be versioned in
+```build-options.properties``` or passed on the command line:
+
+```
+# build-options.properties
+buildinfra.spotless=false
+buildinfra.dependencyChecks=false
+```
+```shell
+./gradlew check -Pbuildinfra.testing=false
+```
+
+| Option | Sub-plugin |
+|---|---|
+| ```buildinfra.gitInfo``` | ```GitInfoPlugin``` |
+| ```buildinfra.reproducibleBuilds``` | ```ApplyReproducibleBuildsPlugin``` |
+| ```buildinfra.forbiddenApis``` | ```ApplyForbiddenApisPlugin``` |
+| ```buildinfra.spotless``` | ```ApplySpotlessFormattingPlugin``` |
+| ```buildinfra.javaDefaults``` | ```ApplySaneJavaDefaultsPlugin``` |
+| ```buildinfra.testing``` | ```TestingEnvPlugin``` |
+| ```buildinfra.testsSummary``` | ```ShowTestsSummaryAtEndPlugin``` |
+| ```buildinfra.slowestTests``` | ```ShowSlowestTestsAtEndPlugin``` |
+| ```buildinfra.failedTests``` | ```ShowFailedTestsAtEndPlugin``` (applies ```TestingEnvPlugin``` itself) |
+| ```buildinfra.dependencyChecks``` | ```DependencyChecksPlugin``` |
+| ```buildinfra.versionCatalogUpdates``` | ```ApplyVersionsTomlCleanupsPlugin``` |
+| ```buildinfra.taskTimes``` | ```MeasureTaskTimesPlugin``` |
+
+The switches only affect what the umbrella plugin applies automatically: a sub-plugin applied
+by class from a build script is always active. Build scripts that configure a sub-plugin's
+extension directly (for example a ```spotless { ... }``` block) should guard it with
+```plugins.withId('com.diffplug.spotless') { ... }``` if the plugin may be switched off. Build options, option groups, the ```tidy```
+task and the gradle wrapper check are always applied. Options that were renamed to follow this
+convention fail the build if the old name is still used (the message names the replacement);
+see [MIGRATION.md](MIGRATION.md).
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.gradlewrapper.GradleConsistentWithWrapperPlugin```
+--
+
+Verifies that the gradle version running the build matches the version in
+```gradle/wrapper/gradle-wrapper.properties```. Build option ```buildinfra.gradleWrapper.consistency```:
+```exact``` (default), ```major```, ```base``` or ```off```.
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.gitinfo.GitInfoPlugin```
 --
 
 Exposes the following extension on the root project:
@@ -91,7 +139,7 @@ the output for both):
 
 Other plugins in buildinfra add their configurable settings as build options.
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.plugins.misc.BuildOptionGroupsPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.optiongroups.BuildOptionGroupsPlugin```
 --
 
 Groups the build options declared by buildinfra plugins into logical categories in the
@@ -158,10 +206,9 @@ Plugin: ```com.carrotsearch.gradle.buildinfra.testing.ShowSlowestTestsAtEndPlugi
 Prints the slowest tests and test suites (across all projects, top 10) at the end of
 a successful build. Build options:
 
-* ```tests.slowestTests```: print the summary of the slowest tests. Default: ```true```
-* ```tests.slowestTests.minTime```: minimum test time to consider a test slow (millis). Default: ```500```
-* ```tests.slowestSuites```: print the summary of the slowest suites. Default: ```true```
-* ```tests.slowestSuites.minTime```: minimum suite time to consider a suite slow (millis). Default: ```1000```
+* ```buildinfra.slowestTests.minTime```: minimum test time to consider a test slow (millis). Default: ```500```
+* ```buildinfra.slowestTests.suites```: print the summary of the slowest suites. Default: ```true```
+* ```buildinfra.slowestTests.suites.minTime```: minimum suite time to consider a suite slow (millis). Default: ```1000```
 
 Plugin: ```com.carrotsearch.gradle.buildinfra.testing.ShowFailedTestsAtEndPlugin```
 --
@@ -180,20 +227,20 @@ ERROR: 1 test has failed:
 These three plugins are applied to all projects automatically; they use build services
 and work with the configuration cache.
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyReproducibleBuildsPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.reproduciblebuilds.ApplyReproducibleBuildsPlugin```
 --
 
 Sets up sane defaults for all ```AbstractArchiveTask``` tasks. These include predictable file order,
 no timestamps and constant (unix) file permissions.
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyRegisterCommonTasksPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.misc.ApplyRegisterCommonTasksPlugin```
 --
 
 Configures common convention tasks for all projects.
 
 * ```tidy```: apply all convention-required cleanups (like code formatting, etc.).
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyForbiddenApisPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.forbiddenapis.ApplyForbiddenApisPlugin```
 --
 
 Sets up (forbidden-apis)[https://github.com/policeman-tools/forbidden-apis] API checker
@@ -202,7 +249,7 @@ for all Java projects.
 This plugin configures forbidden-apis tasks so that for any source set of
 a Java project, its dependencies are verified against
 forbidden API signatures in plain text
-files relative to ```forbiddenApisDir``` build option 
+files relative to ```buildinfra.forbiddenApis.dir``` build option 
 directory (default: ``gradle/forbidden-apis```).
 
 For example, a Guava dependency would correspond to ```gradle/forbidden-apis/com.google.guava-guava.txt```
@@ -210,7 +257,7 @@ file.
 
 Hooks up to the ```check``` task to verify code compliance.
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplySpotlessFormattingPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.spotless.ApplySpotlessFormattingPlugin```
 --
 
 Sets up (spotless)[https://github.com/diffplug/spotless] to reformat Java and other files
@@ -259,7 +306,7 @@ testRuntimeClasspath
 This plugin only tracks dependency versions and detects their inconsistencies: any resolution
 of inconsistencies should be done using Gradle's built-in infrastructure. 
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplySaneJavaDefaultsPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.javadefaults.ApplySaneJavaDefaultsPlugin```
 --
 
 This plugin does the following:
@@ -268,7 +315,7 @@ This plugin does the following:
   sets the ```sourceCompatibility```, ```targetCompatibility``` and toolchain's
   version to this string.
 
-Plugin: ```com.carrotsearch.gradle.buildinfra.plugins.misc.MeasureTaskTimesPlugin```
+Plugin: ```com.carrotsearch.gradle.buildinfra.tasktimes.MeasureTaskTimesPlugin```
 --
 
 Applied automatically to the root project. Measures wall-clock execution time of all
@@ -284,20 +331,20 @@ Summary of task execution times (top-20, >100ms, aggregated by unique name, poss
 
 Build options:
 
-* ```task.times```: print the summary at the end of the build. Default: ```false```, or
+* ```buildinfra.taskTimes```: print the summary at the end of the build. Default: ```false```, or
   ```true``` when the ```CI``` environment variable is set (CI builds).
-* ```task.times.aggregate```: aggregate task times by unique task name (across all projects); if
+* ```buildinfra.taskTimes.aggregate```: aggregate task times by unique task name (across all projects); if
   ```false```, unique task paths are listed instead. Default: ```true```
-* ```task.times.limit```: limit the list to the top-N tasks. Default: ```20```
-* ```task.times.mintime.millis```: omit tasks that took less than this number of milliseconds
+* ```buildinfra.taskTimes.limit```: limit the list to the top-N tasks. Default: ```20```
+* ```buildinfra.taskTimes.minTimeMillis```: omit tasks that took less than this number of milliseconds
   (```0``` reports all tasks). Default: ```100```
-* ```task.times.time.format```: format of reported durations: ```compact``` (```1m 5s```),
+* ```buildinfra.taskTimes.timeFormat```: format of reported durations: ```compact``` (```1m 5s```),
   ```normal``` (```1m 5s 300ms```) or ```full``` (```1 minute 5 seconds 300 milliseconds```).
   Default: ```compact```
 
 For example:
 ```shell
-./gradlew build -Ptask.times=true -Ptask.times.aggregate=false -Ptask.times.limit=10
+./gradlew build -Pbuildinfra.taskTimes=true -Pbuildinfra.taskTimes.aggregate=false -Pbuildinfra.taskTimes.limit=10
 ```
 
 Plugin: ```com.carrotsearch.gradle.buildinfra.publishing.mavencentral.MavenCentralPublishingPlugin```

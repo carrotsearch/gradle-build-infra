@@ -1,7 +1,6 @@
-package com.carrotsearch.gradle.buildinfra.plugins.misc
+package com.carrotsearch.gradle.buildinfra.tasktimes
 
-import com.carrotsearch.gradle.buildinfra.publishing.mavencentral.AbstractIntegTest
-import org.gradle.testkit.runner.GradleRunner
+import com.carrotsearch.gradle.buildinfra.AbstractIntegTest
 import org.gradle.testkit.runner.TaskOutcome
 
 class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
@@ -25,7 +24,7 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
         id 'com.carrotsearch.gradle.buildinfra' apply false
       }
 
-      apply plugin: com.carrotsearch.gradle.buildinfra.plugins.misc.MeasureTaskTimesPlugin
+      apply plugin: com.carrotsearch.gradle.buildinfra.tasktimes.MeasureTaskTimesPlugin
 
       subprojects {
         tasks.register("slow") {
@@ -40,19 +39,6 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
     """)
   }
 
-  /**
-   * The option's default depends on the CI environment variable, so tests control it
-   * explicitly (the test JVM itself may be running on a CI).
-   */
-  GradleRunner runnerWithCi(boolean ci, String... arguments) {
-    def env = new HashMap<String, String>(System.getenv())
-    env.remove("CI")
-    if (ci) {
-      env.put("CI", "true")
-    }
-    return gradleRunner(arguments).withEnvironment(env)
-  }
-
   static final String DURATION = /\d+(d|h|m|s|ms)( \d+(d|h|m|s|ms))*/
 
   /** Report lines: a right-aligned duration followed by the task name. */
@@ -60,44 +46,13 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
     return output.readLines().findAll { it ==~ /^\s*${DURATION}\s+\S+\s*$/ }
   }
 
-  def "no summary is printed by default outside of CI"() {
-    given:
-    taskTimesFixture()
-
-    when:
-    def result = runnerWithCi(false, "slow", "quick").build()
-
-    then:
-    result.task(":a:slow").outcome == TaskOutcome.SUCCESS
-    !result.output.contains(SUMMARY)
-  }
-
-  def "summary is printed by default on CI, unless disabled explicitly"() {
-    given:
-    taskTimesFixture()
-
-    when:
-    def result = runnerWithCi(true, "slow", "quick").build()
-
-    then:
-    result.task(":a:slow").outcome == TaskOutcome.SUCCESS
-    containsLines(result.output, "Summary of task execution times (top-20")
-
-    when:
-    def disabled = runnerWithCi(true, "slow", "quick", "-Ptask.times=false").build()
-
-    then:
-    disabled.task(":a:slow").outcome == TaskOutcome.SUCCESS
-    !disabled.output.contains(SUMMARY)
-  }
-
   def "summary is aggregated by task name and survives the configuration cache"() {
     given:
     taskTimesFixture()
 
     when:
-    def result = runnerWithCi(false, "slow", "quick",
-        "-Ptask.times=true", "-Ptask.times.mintime.millis=0").build()
+    def result = gradleRunnerWithCi(false, "slow", "quick",
+        "-Pbuildinfra.taskTimes.minTimeMillis=0").build()
 
     then:
     result.task(":b:quick").outcome == TaskOutcome.SUCCESS
@@ -110,8 +65,8 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
     lines.every { !it.contains(":") }
 
     when: "the build is re-run from the configuration cache"
-    def cached = runnerWithCi(false, "slow", "quick",
-        "-Ptask.times=true", "-Ptask.times.mintime.millis=0").build()
+    def cached = gradleRunnerWithCi(false, "slow", "quick",
+        "-Pbuildinfra.taskTimes.minTimeMillis=0").build()
 
     then:
     containsLines(cached.output, "Reusing configuration cache.")
@@ -123,8 +78,8 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
     taskTimesFixture()
 
     when:
-    def result = runnerWithCi(false, "slow", "quick",
-        "-Ptask.times=true", "-Ptask.times.aggregate=false", "-Ptask.times.limit=2").build()
+    def result = gradleRunnerWithCi(false, "slow", "quick",
+        "-Pbuildinfra.taskTimes.aggregate=false", "-Pbuildinfra.taskTimes.limit=2").build()
 
     then:
     containsLines(result.output, "Summary of task execution times (top-2, >100ms, unique task paths):")
@@ -142,7 +97,7 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
     """)
 
     when:
-    def result = runnerWithCi(false, "slow", "boom", "--continue", "-Ptask.times=true").buildAndFail()
+    def result = gradleRunnerWithCi(false, "slow", "boom", "--continue").buildAndFail()
 
     then:
     result.task(":a:slow").outcome == TaskOutcome.SUCCESS
@@ -160,7 +115,7 @@ class MeasureTaskTimesPluginSpec extends AbstractIntegTest {
     """)
 
     when:
-    def result = runnerWithCi(true, "noop", "-Ptask.times.mintime.millis=0").build()
+    def result = gradleRunnerWithCi(true, "noop", "-Pbuildinfra.taskTimes.minTimeMillis=0").build()
 
     then:
     result.task(":noop").outcome in [TaskOutcome.SUCCESS, TaskOutcome.UP_TO_DATE]

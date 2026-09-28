@@ -1,5 +1,6 @@
 package com.carrotsearch.gradle.buildinfra;
 
+import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
 import java.util.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -54,6 +55,32 @@ public abstract class AbstractPlugin implements Plugin<Project> {
             action.execute(problemSpec);
           }
         });
+  }
+
+  /**
+   * Declares a deprecated (renamed) build option so that all value sources are consulted, and fails
+   * the build if a value is present, pointing at the replacement option.
+   */
+  protected final void failIfDeprecatedOptionUsed(
+      BuildOptionsExtension buildOptions, String deprecatedName) {
+    String replacement = DeprecatedBuildOptions.RENAMES.get(deprecatedName);
+    if (replacement == null) {
+      throw new IllegalArgumentException("Not a deprecated option: " + deprecatedName);
+    }
+
+    if (!buildOptions.hasOption(deprecatedName)) {
+      buildOptions.addOption(deprecatedName, "Deprecated, renamed to '" + replacement + "'.");
+    }
+
+    if (buildOptions.getOption(deprecatedName).isPresent()) {
+      throw reportError(
+          "deprecated-build-option",
+          "Build option '" + deprecatedName + "' has been renamed to '" + replacement + "'.",
+          spec ->
+              spec.solution(
+                  "Rename the option in build-options.properties, gradle.properties, the"
+                      + " environment or on the command line."));
+    }
   }
 
   protected VersionCatalog getLibsCatalog(Project project) {

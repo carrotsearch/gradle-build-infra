@@ -13,7 +13,7 @@ public abstract class CheckCleanCheckout extends DefaultTask {
   /**
    * The state of the git checkout.
    *
-   * @see com.carrotsearch.gradle.buildinfra.environment.GitInfoExtension#getGitInfo()
+   * @see com.carrotsearch.gradle.buildinfra.gitinfo.GitInfoExtension#getGitInfo()
    */
   @Internal
   public abstract MapProperty<String, String> getGitInfo();

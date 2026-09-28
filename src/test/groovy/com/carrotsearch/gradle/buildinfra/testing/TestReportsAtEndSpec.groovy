@@ -1,6 +1,6 @@
 package com.carrotsearch.gradle.buildinfra.testing
 
-import com.carrotsearch.gradle.buildinfra.publishing.mavencentral.AbstractIntegTest
+import com.carrotsearch.gradle.buildinfra.AbstractIntegTest
 import org.gradle.testkit.runner.TaskOutcome
 
 /**
@@ -74,7 +74,7 @@ class TestReportsAtEndSpec extends AbstractIntegTest {
   def "summary and slowest tests are printed and survive the configuration cache"() {
     given:
     javaProjectFixture()
-    def args = RERUN_ALL + ["-Ptests.slowestTests.minTime=0", "-Ptests.slowestSuites.minTime=0"]
+    def args = RERUN_ALL + ["-Pbuildinfra.slowestTests.minTime=0", "-Pbuildinfra.slowestTests.suites.minTime=0"]
 
     when:
     def result = gradleRunner(args).build()
@@ -122,8 +122,8 @@ class TestReportsAtEndSpec extends AbstractIntegTest {
 
     when:
     def result = gradleRunner(RERUN_ALL + [
-      "-Ptests.slowestTests=false", "-Ptests.slowestSuites=false",
-      "-Ptests.slowestTests.minTime=0", "-Ptests.slowestSuites.minTime=0"
+      "-Pbuildinfra.slowestTests=false",
+      "-Pbuildinfra.slowestTests.minTime=0", "-Pbuildinfra.slowestTests.suites.minTime=0"
     ]).build()
 
     then:

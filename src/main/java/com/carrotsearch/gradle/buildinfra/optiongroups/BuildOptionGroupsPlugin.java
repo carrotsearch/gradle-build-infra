@@ -1,12 +1,10 @@
-package com.carrotsearch.gradle.buildinfra.plugins.misc;
+package com.carrotsearch.gradle.buildinfra.optiongroups;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
+import com.carrotsearch.gradle.buildinfra.BuildInfraPlugin;
+import com.carrotsearch.gradle.buildinfra.DeprecatedBuildOptions;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsTask;
-import com.carrotsearch.gradle.buildinfra.conventions.ApplyForbiddenApisPlugin;
-import com.carrotsearch.gradle.buildinfra.conventions.ApplySpotlessFormattingPlugin;
-import com.carrotsearch.gradle.buildinfra.environment.GradleConsistentWithWrapperPlugin;
-import com.carrotsearch.gradle.buildinfra.testing.ShowSlowestTestsAtEndPlugin;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,23 +42,17 @@ public class BuildOptionGroupsPlugin extends AbstractPlugin {
               task.optionGroups(
                   optionGroups -> {
                     optionGroups.group(
-                        "Build environment and conventions",
+                        "Build-infra plugins (enable/disable)",
                         explicitList(
-                            GradleConsistentWithWrapperPlugin.OPT_GRADLE_WRAPPER_CONSISTENCY,
-                            ApplySpotlessFormattingPlugin.OPT_SPOTLESS_GRADLE_GROOVY_SCRIPTS,
-                            ApplyForbiddenApisPlugin.OPT_FORBIDDEN_APIS_DIR));
+                            Stream.of(BuildInfraPlugin.SubPlugin.values())
+                                .map(BuildInfraPlugin.SubPlugin::optionName)
+                                .toArray(String[]::new)));
 
-                    optionGroups.group(
-                        "Build control and information",
-                        Pattern.quote(MeasureTaskTimesPlugin.OPT_TASK_TIMES) + "(\\..*)?");
+                    optionGroups.group("Build-infra plugin options", "buildinfra\\.[^.]+\\..+");
 
                     optionGroups.group(
                         "Test reports and output",
                         explicitList(
-                            ShowSlowestTestsAtEndPlugin.OPT_SLOWEST_TESTS,
-                            ShowSlowestTestsAtEndPlugin.OPT_SLOWEST_TESTS_MIN_TIME,
-                            ShowSlowestTestsAtEndPlugin.OPT_SLOWEST_SUITES,
-                            ShowSlowestTestsAtEndPlugin.OPT_SLOWEST_SUITES_MIN_TIME,
                             "tests.echoOutputOnError",
                             "tests.verbose",
                             "tests.htmlReports",
@@ -86,6 +78,11 @@ public class BuildOptionGroupsPlugin extends AbstractPlugin {
                             "tests.timeout",
                             "tests.timeoutSuite",
                             "tests.asserts"));
+
+                    optionGroups.group(
+                        "Deprecated options (renamed)",
+                        explicitList(
+                            DeprecatedBuildOptions.RENAMES.keySet().toArray(String[]::new)));
 
                     optionGroups.otherOptions("Other options");
                   });

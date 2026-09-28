@@ -30,7 +30,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
  *
  * <p>Heavily inspired by Elasticsearch's ErrorReportingTestListener (ASL 2.0 licensed).
  */
-class ErrorReportingTestListener implements TestOutputListener, TestListener {
+public class ErrorReportingTestListener implements TestOutputListener, TestListener {
   private final Logger taskLogger;
   private final TestExceptionFormatter formatter;
   private final Map<TestKey, OutputHandler> outputHandlers = new ConcurrentHashMap<>();

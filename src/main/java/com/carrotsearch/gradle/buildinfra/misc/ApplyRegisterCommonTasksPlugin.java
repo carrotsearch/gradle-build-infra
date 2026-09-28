@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.conventions;
+package com.carrotsearch.gradle.buildinfra.misc;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import javax.inject.Inject;

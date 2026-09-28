@@ -1,5 +1,6 @@
 package com.carrotsearch.gradle.buildinfra.publishing.mavencentral
 
+import com.carrotsearch.gradle.buildinfra.AbstractIntegTest;
 import java.nio.charset.StandardCharsets
 import org.gradle.testkit.runner.TaskOutcome
 

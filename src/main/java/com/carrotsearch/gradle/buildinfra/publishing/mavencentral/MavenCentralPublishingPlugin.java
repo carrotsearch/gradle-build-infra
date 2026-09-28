@@ -1,8 +1,8 @@
 package com.carrotsearch.gradle.buildinfra.publishing.mavencentral;
 
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
-import com.carrotsearch.gradle.buildinfra.environment.GitInfoExtension;
-import com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin;
+import com.carrotsearch.gradle.buildinfra.gitinfo.GitInfoExtension;
+import com.carrotsearch.gradle.buildinfra.gitinfo.GitInfoPlugin;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;

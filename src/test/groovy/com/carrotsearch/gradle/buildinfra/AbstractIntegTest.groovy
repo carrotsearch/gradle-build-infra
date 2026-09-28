@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.publishing.mavencentral
+package com.carrotsearch.gradle.buildinfra
 
 import java.util.zip.ZipFile
 import org.assertj.core.api.Assertions
@@ -120,6 +120,19 @@ abstract class AbstractIntegTest extends Specification {
       "all",
       "--stacktrace"
     ] + arguments.toList())
+  }
+
+  /**
+   * A runner with the CI environment variable explicitly set or removed (some defaults depend
+   * on it and the test JVM itself may be running on a CI).
+   */
+  GradleRunner gradleRunnerWithCi(boolean ci, String... arguments) {
+    def env = new HashMap<String, String>(System.getenv())
+    env.remove("CI")
+    if (ci) {
+      env.put("CI", "true")
+    }
+    return gradleRunner(arguments).withEnvironment(env)
   }
 
   List<String> filesUnder(String relativePath) {
