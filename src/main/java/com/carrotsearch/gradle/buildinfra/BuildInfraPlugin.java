@@ -10,6 +10,7 @@ import com.carrotsearch.gradle.buildinfra.conventions.ApplyVersionsTomlCleanupsP
 import com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GradleConsistentWithWrapperPlugin;
+import com.carrotsearch.gradle.buildinfra.plugins.misc.MeasureTaskTimesPlugin;
 import com.carrotsearch.gradle.buildinfra.testing.TestingEnvPlugin;
 import java.util.List;
 import javax.inject.Inject;
@@ -64,5 +65,8 @@ public class BuildInfraPlugin extends AbstractPlugin {
           pluginContainer.apply(DependencyChecksPlugin.class);
           pluginContainer.apply(ApplyVersionsTomlCleanupsPlugin.class);
         });
+
+    // root-level, build-wide plugins.
+    rootProject.getPlugins().apply(MeasureTaskTimesPlugin.class);
   }
 }

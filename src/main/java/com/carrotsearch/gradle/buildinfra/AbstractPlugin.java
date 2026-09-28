@@ -26,7 +26,7 @@ public abstract class AbstractPlugin implements Plugin<Project> {
     if (!isRootProject(project)) {
       throw reportError(
           "environment-apply-root-project",
-          "Theis plugin is applicable to the rootProject only (currently applied to "
+          "This plugin is applicable to the rootProject only (currently applied to "
               + project.getPath()
               + ")");
     }

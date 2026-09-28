@@ -218,6 +218,38 @@ This plugin does the following:
   sets the ```sourceCompatibility```, ```targetCompatibility``` and toolchain's
   version to this string.
 
+Plugin: ```com.carrotsearch.gradle.buildinfra.plugins.misc.MeasureTaskTimesPlugin```
+--
+
+Applied automatically to the root project. Measures wall-clock execution time of all
+executed tasks (across all projects) and prints a summary of the slowest ones at the end
+of a successful build (no summary is printed if any task failed). For example:
+
+```
+Summary of task execution times (top-20, >100ms, aggregated by unique name, possibly running in parallel):
+1m 12s  test
+   12s  compileJava
+ 300ms  spotlessJavaCheck
+```
+
+Build options:
+
+* ```task.times```: print the summary at the end of the build. Default: ```false```, or
+  ```true``` when the ```CI``` environment variable is set (CI builds).
+* ```task.times.aggregate```: aggregate task times by unique task name (across all projects); if
+  ```false```, unique task paths are listed instead. Default: ```true```
+* ```task.times.limit```: limit the list to the top-N tasks. Default: ```20```
+* ```task.times.mintime.millis```: omit tasks that took less than this number of milliseconds
+  (```0``` reports all tasks). Default: ```100```
+* ```task.times.time.format```: format of reported durations: ```compact``` (```1m 5s```),
+  ```normal``` (```1m 5s 300ms```) or ```full``` (```1 minute 5 seconds 300 milliseconds```).
+  Default: ```compact```
+
+For example:
+```shell
+./gradlew build -Ptask.times=true -Ptask.times.aggregate=false -Ptask.times.limit=10
+```
+
 Plugin: ```com.carrotsearch.gradle.buildinfra.publishing.mavencentral.MavenCentralPublishingPlugin```
 --
 

@@ -40,6 +40,22 @@ abstract class AbstractIntegTest extends Specification {
   }
 
   /**
+   * The root plugin verifies the wrapper and expects a 'libs' catalog with a few versions,
+   * so a minimal fixture satisfying these is required.
+   */
+  void rootPluginFixture() {
+    file("gradle/wrapper/gradle-wrapper.properties", """
+      distributionUrl=https\\://services.gradle.org/distributions/gradle-${System.getProperty("tests.gradle.version")}-bin.zip
+    """)
+
+    file("gradle/libs.versions.toml", """
+      [versions]
+      googleJavaFormat = "1.35.0"
+      minJava = "17"
+    """)
+  }
+
+  /**
    * A multi-project build with two java projects, of which only one (:lib) is published.
    */
   void multiProjectFixture(String version, String extensionBody) {

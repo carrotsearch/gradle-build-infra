@@ -4,22 +4,6 @@ import com.carrotsearch.gradle.buildinfra.publishing.mavencentral.AbstractIntegT
 import org.gradle.testkit.runner.TaskOutcome
 
 class BuildInfraExtensionSpec extends AbstractIntegTest {
-  /**
-   * The root plugin verifies the wrapper and expects a 'libs' catalog with a few versions,
-   * so a minimal fixture satisfying these is required.
-   */
-  void rootPluginFixture() {
-    file("gradle/wrapper/gradle-wrapper.properties", """
-      distributionUrl=https\\://services.gradle.org/distributions/gradle-${System.getProperty("tests.gradle.version")}-bin.zip
-    """)
-
-    file("gradle/libs.versions.toml", """
-      [versions]
-      googleJavaFormat = "1.35.0"
-      minJava = "17"
-    """)
-  }
-
   def "exposes injected services via the extension"() {
     given:
     rootPluginFixture()
