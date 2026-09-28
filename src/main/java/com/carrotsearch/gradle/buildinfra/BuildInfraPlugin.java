@@ -11,6 +11,9 @@ import com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugi
 import com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GradleConsistentWithWrapperPlugin;
 import com.carrotsearch.gradle.buildinfra.plugins.misc.MeasureTaskTimesPlugin;
+import com.carrotsearch.gradle.buildinfra.testing.ShowFailedTestsAtEndPlugin;
+import com.carrotsearch.gradle.buildinfra.testing.ShowSlowestTestsAtEndPlugin;
+import com.carrotsearch.gradle.buildinfra.testing.ShowTestsSummaryAtEndPlugin;
 import com.carrotsearch.gradle.buildinfra.testing.TestingEnvPlugin;
 import java.util.List;
 import javax.inject.Inject;
@@ -62,6 +65,9 @@ public class BuildInfraPlugin extends AbstractPlugin {
           pluginContainer.apply(ApplySpotlessFormattingPlugin.class);
           pluginContainer.apply(ApplySaneJavaDefaultsPlugin.class);
           pluginContainer.apply(TestingEnvPlugin.class);
+          pluginContainer.apply(ShowTestsSummaryAtEndPlugin.class);
+          pluginContainer.apply(ShowSlowestTestsAtEndPlugin.class);
+          pluginContainer.apply(ShowFailedTestsAtEndPlugin.class);
           pluginContainer.apply(DependencyChecksPlugin.class);
           pluginContainer.apply(ApplyVersionsTomlCleanupsPlugin.class);
         });

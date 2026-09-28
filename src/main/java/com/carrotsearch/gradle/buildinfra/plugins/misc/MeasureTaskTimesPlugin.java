@@ -3,11 +3,11 @@ package com.carrotsearch.gradle.buildinfra.plugins.misc;
 import com.carrotsearch.gradle.buildinfra.AbstractPlugin;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsExtension;
 import com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsPlugin;
-import com.carrotsearch.gradle.buildinfra.utils.TabularOutput;
+import com.carrotsearch.gradle.buildinfra.utils.DurationTable;
 import com.carrotsearch.gradle.buildinfra.utils.UnitFormatter;
 import com.carrotsearch.gradle.buildinfra.utils.Units;
-import java.io.StringWriter;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -191,37 +191,23 @@ public class MeasureTaskTimesPlugin extends AbstractPlugin {
                         e -> e.getValue().stream().mapToLong(Map.Entry::getValue).sum()));
       }
 
-      var tabular =
-          TabularOutput.to(new StringWriter())
-              .columnSeparator("  ")
-              .noAutoFlush()
-              .outputHeaders(false)
-              .addColumn("time", TabularOutput.ColumnSpec::alignRight)
-              .addColumn("task", TabularOutput.ColumnSpec::alignLeft)
-              .build();
-
-      localTaskTimes.entrySet().stream()
-          .filter(e -> e.getValue() >= minTimeMillis)
-          .sorted(Comparator.comparingLong((Map.Entry<String, Long> e) -> e.getValue()).reversed())
-          .limit(limit)
-          .forEachOrdered(
-              e ->
-                  tabular.append("  " + durationFormat.format(e.getValue()), e.getKey()).nextRow());
+      List<DurationTable.Row> rows =
+          localTaskTimes.entrySet().stream()
+              .filter(e -> e.getValue() >= minTimeMillis)
+              .sorted(
+                  Comparator.comparingLong((Map.Entry<String, Long> e) -> e.getValue()).reversed())
+              .limit(limit)
+              .map(e -> new DurationTable.Row(e.getValue(), e.getKey()))
+              .toList();
 
       LOGGER.lifecycle(
-          "\nSummary of task execution times (top-{}{}, {}):\n{}",
+          "Summary of task execution times (top-{}{}, {}):\n{}\n",
           limit,
           minTimeMillis > 0 ? ", >" + durationFormat.format(minTimeMillis) : "",
           params.getAggregateByName().get()
               ? "aggregated by unique name, possibly running in parallel"
               : "unique task paths",
-          tabular
-              .flush()
-              .getWriter()
-              .toString()
-              .lines()
-              .map(String::stripTrailing)
-              .collect(Collectors.joining("\n")));
+          DurationTable.format(durationFormat, rows));
     }
   }
 

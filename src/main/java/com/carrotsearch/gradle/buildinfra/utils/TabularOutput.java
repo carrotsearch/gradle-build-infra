@@ -54,26 +54,17 @@ public final class TabularOutput {
 
   /** Column specification. */
   public static final class ColumnSpec {
-    /**
-     * Maximum default column width. This is 4 times a fairly standard terminal window. Should
-     * prevent insane formatting if a very long value appears in the output.
-     */
-
     /** Alignment. */
     Alignment alignment = Alignment.LEFT;
 
     /** Formatter for the value. */
     String format = "%s";
 
-    /** Maximum column width, in characters. No limit if zero. */
-
     /** Sets column flush on the last added column. */
     public ColumnSpec alignLeft() {
       this.alignment = Alignment.LEFT;
       return this;
     }
-
-    /** Sets maximum column width, in characters. No limit if zero. */
 
     /** Sets column flush on the last added column. */
     public ColumnSpec alignRight() {

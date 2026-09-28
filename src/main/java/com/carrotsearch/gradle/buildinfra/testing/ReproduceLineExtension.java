@@ -25,7 +25,7 @@ public class ReproduceLineExtension {
       if (descriptor.isComposite()) {
         args.add(descriptor.getClassName());
       } else {
-        args.add(descriptor.getClassName() + "." + descriptor.getName());
+        args.add(descriptor.getClassName() + "." + TestNames.methodName(descriptor));
       }
     }
 

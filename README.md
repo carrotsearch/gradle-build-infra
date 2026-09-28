@@ -105,7 +105,7 @@ tasks.
 * ```tests.htmlReports```: Configures HTML report generation from tests. Default: ```false``` 
 * ```tests.jvmargs```: Additional arguments to pass directly to the forked test runner JVMs.
 * ```tests.jvms```: The number of forked test JVMs.
-* ```tests.maxheap```: Minimum heap size for test JVMs.
+* ```tests.maxheap```: Maximum heap size for test JVMs.
 * ```tests.minheap```: Minimum heap size for test JVMs.
 * ```tests.rerun```: Force re-running tests. Default: ```false```
 * ```tests.tmp.dir```: Temporary directory for test JVMs. Default: ```test-tmp```
@@ -129,6 +129,40 @@ modify their defaults using command line, environment variables or your local, n
 ```shell
 ./gradlew test -Ptests.rerun=true "-Ptests.jvmargs=-verbose:gc" -Ptests.verbose=true --max-workers=1
 ```
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.testing.ShowTestsSummaryAtEndPlugin```
+--
+
+Prints a summary of all executed test tasks (across all projects) at the end of the build,
+for example: ```6 test tasks executed, 5552 tests, 2 failures, 7 ignored```.
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.testing.ShowSlowestTestsAtEndPlugin```
+--
+
+Prints the slowest tests and test suites (across all projects, top 10) at the end of
+a successful build. Build options:
+
+* ```tests.slowestTests```: print the summary of the slowest tests. Default: ```true```
+* ```tests.slowestTests.minTime```: minimum test time to consider a test slow (millis). Default: ```500```
+* ```tests.slowestSuites```: print the summary of the slowest suites. Default: ```true```
+* ```tests.slowestSuites.minTime```: minimum suite time to consider a suite slow (millis). Default: ```1000```
+
+Plugin: ```com.carrotsearch.gradle.buildinfra.testing.ShowFailedTestsAtEndPlugin```
+--
+
+Prints all failed tests (across all projects, top 10), along with the file containing the
+test's output and a reproduce line, at the end of the build:
+
+```
+ERROR: 1 test has failed:
+
+  - com.example.ExampleTest.failingTest (:lib:test)
+    Test output: /path/to/lib/build/test-outputs/test/OUTPUT-com.example.ExampleTest.txt
+    Reproduce with: ./gradlew :lib:test --tests com.example.ExampleTest.failingTest -Ptests.seed=6A2E2AB1D2B37F76
+```
+
+These three plugins are applied to all projects automatically; they use build services
+and work with the configuration cache.
 
 Plugin: ```com.carrotsearch.gradle.buildinfra.conventions.ApplyReproducibleBuildsPlugin```
 --
@@ -227,9 +261,9 @@ of a successful build (no summary is printed if any task failed). For example:
 
 ```
 Summary of task execution times (top-20, >100ms, aggregated by unique name, possibly running in parallel):
-1m 12s  test
-   12s  compileJava
- 300ms  spotlessJavaCheck
+    1m 12s  test
+       12s  compileJava
+     300ms  spotlessJavaCheck
 ```
 
 Build options:
