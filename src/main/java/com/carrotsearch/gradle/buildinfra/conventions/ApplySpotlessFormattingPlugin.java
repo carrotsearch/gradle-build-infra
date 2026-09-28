@@ -25,6 +25,9 @@ import org.gradle.api.tasks.TaskContainer;
 import org.jetbrains.annotations.Nullable;
 
 public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
+  public static final String OPT_SPOTLESS_GRADLE_GROOVY_SCRIPTS =
+      "buildinfra.spotlessGradleGroovyScripts";
+
   @Inject
   public ApplySpotlessFormattingPlugin(Problems problems) {
     super(problems);
@@ -93,7 +96,7 @@ public class ApplySpotlessFormattingPlugin extends AbstractPlugin {
     // Add an extra format to cover groovy/gradle sources.
     var isRootProject = project == project.getRootProject();
 
-    var spotlessGradleScriptsOptionName = "buildinfra.spotlessGradleGroovyScripts";
+    var spotlessGradleScriptsOptionName = OPT_SPOTLESS_GRADLE_GROOVY_SCRIPTS;
     var spotlessGradleScriptsOption =
         project
             .getExtensions()

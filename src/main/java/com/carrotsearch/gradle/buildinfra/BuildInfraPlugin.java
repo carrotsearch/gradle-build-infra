@@ -10,6 +10,7 @@ import com.carrotsearch.gradle.buildinfra.conventions.ApplyVersionsTomlCleanupsP
 import com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GitInfoPlugin;
 import com.carrotsearch.gradle.buildinfra.environment.GradleConsistentWithWrapperPlugin;
+import com.carrotsearch.gradle.buildinfra.plugins.misc.BuildOptionGroupsPlugin;
 import com.carrotsearch.gradle.buildinfra.plugins.misc.MeasureTaskTimesPlugin;
 import com.carrotsearch.gradle.buildinfra.testing.ShowFailedTestsAtEndPlugin;
 import com.carrotsearch.gradle.buildinfra.testing.ShowSlowestTestsAtEndPlugin;
@@ -59,6 +60,7 @@ public class BuildInfraPlugin extends AbstractPlugin {
         subproject -> {
           var pluginContainer = subproject.getPlugins();
           pluginContainer.apply(BuildOptionsPlugin.class);
+          pluginContainer.apply(BuildOptionGroupsPlugin.class);
           pluginContainer.apply(ApplyRegisterCommonTasksPlugin.class);
           pluginContainer.apply(ApplyReproducibleBuildsPlugin.class);
           pluginContainer.apply(ApplyForbiddenApisPlugin.class);

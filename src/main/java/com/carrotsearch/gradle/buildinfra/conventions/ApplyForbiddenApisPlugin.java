@@ -24,6 +24,7 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.tasks.TaskCollection;
 
 public class ApplyForbiddenApisPlugin extends AbstractPlugin {
+  public static final String OPT_FORBIDDEN_APIS_DIR = "forbiddenApisDir";
 
   @Inject
   public ApplyForbiddenApisPlugin(Problems problems) {
@@ -47,7 +48,7 @@ public class ApplyForbiddenApisPlugin extends AbstractPlugin {
     Directory projectDirectory = project.getLayout().getProjectDirectory();
     var forbiddenApisDirOption =
         buildOptions.addOption(
-            "forbiddenApisDir",
+            OPT_FORBIDDEN_APIS_DIR,
             "Directory with per-dependency forbidden-apis rules.",
             projectDirectory.getAsFile().toPath().relativize(forbiddenApisDir).toString());
 

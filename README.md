@@ -91,6 +91,22 @@ the output for both):
 
 Other plugins in buildinfra add their configurable settings as build options.
 
+Plugin: ```com.carrotsearch.gradle.buildinfra.plugins.misc.BuildOptionGroupsPlugin```
+--
+
+Groups the build options declared by buildinfra plugins into logical categories in the
+output of the ```buildOptions``` task (build environment, build control, test reports,
+test JVMs, randomized testing). Projects can add their own groups; options matching none of
+the groups are listed under "Other options":
+
+```groovy
+tasks.withType(com.carrotsearch.gradle.buildinfra.buildoptions.BuildOptionsTask).configureEach {
+  optionGroups {
+    group("My project's options", /myproject\.(.*)/)
+  }
+}
+```
+
 Plugin: ```com.carrotsearch.gradle.buildinfra.testing.TestingEnvPlugin```
 --
 

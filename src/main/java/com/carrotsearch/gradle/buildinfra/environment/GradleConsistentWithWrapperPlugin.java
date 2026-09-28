@@ -16,6 +16,8 @@ import org.gradle.api.problems.Problems;
 import org.gradle.util.GradleVersion;
 
 public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
+  public static final String OPT_GRADLE_WRAPPER_CONSISTENCY = "check.gradlewrapper.consistency";
+
   @Inject
   public GradleConsistentWithWrapperPlugin(Problems problems) {
     super(problems);
@@ -38,7 +40,7 @@ public class GradleConsistentWithWrapperPlugin extends AbstractPlugin {
         ConsistencyOptions.valueOf(
             buildOptions
                 .addOption(
-                    "check.gradlewrapper.consistency",
+                    OPT_GRADLE_WRAPPER_CONSISTENCY,
                     "Verify gradle matches gradle wrapper version (exact, major, minor, off).",
                     "exact")
                 .get()
