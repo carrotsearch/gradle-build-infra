@@ -49,6 +49,7 @@ by class (rather than the umbrella plugin id) are affected:
 | Old class | New class |
 |---|---|
 | ```...buildinfra.environment.GitInfoPlugin``` | ```...buildinfra.gitinfo.GitInfoPlugin``` |
+| ```...buildinfra.environment.GitInfoExtension``` | ```...buildinfra.gitinfo.GitInfoExtension``` |
 | ```...buildinfra.environment.GradleConsistentWithWrapperPlugin``` | ```...buildinfra.gradlewrapper.GradleConsistentWithWrapperPlugin``` |
 | ```...buildinfra.conventions.ApplyRegisterCommonTasksPlugin``` | ```...buildinfra.misc.ApplyRegisterCommonTasksPlugin``` |
 | ```...buildinfra.conventions.ApplyReproducibleBuildsPlugin``` | ```...buildinfra.reproduciblebuilds.ApplyReproducibleBuildsPlugin``` |
