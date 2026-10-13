@@ -9,6 +9,8 @@ updates:
     commit-message:
       prefix: deps(gh-actions)
     labels: [dependencies]
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: gradle
     directory: /
@@ -19,3 +21,5 @@ updates:
     commit-message:
       prefix: deps(java)
     labels: [dependencies]
+    cooldown:
+      default-days: 7
