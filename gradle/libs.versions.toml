@@ -11,7 +11,7 @@ dependencychecks-plugin = "com.carrotsearch.gradle.dependencychecks:com.carrotse
 spotless-plugin = "com.diffplug.spotless:spotless-plugin-gradle:8.10.3"
 forbiddenapis-plugin = "de.thetaphi:forbiddenapis:3.11"
 benmanes-versions-plugin = "io.github.ben-manes.versions.settings:io.github.ben-manes.versions.settings.gradle.plugin:0.64.0"
-version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:1.1.1"
+version-catalog-update-plugin = "nl.littlerobots.version-catalog-update:nl.littlerobots.version-catalog-update.gradle.plugin:1.1.2"
 jackson-databind = "com.fasterxml.jackson.core:jackson-databind:2.22.3"
 assertj = "org.assertj:assertj-core:3.27.7"
 # A simple http server for tests.
